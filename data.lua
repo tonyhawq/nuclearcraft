@@ -4,6 +4,7 @@ local moderator_rod = table.deepcopy(data.raw.container["steel-chest"])
 local heat_interface = table.deepcopy(data.raw["heat-interface"]["heat-interface"])
 local heat_pipe = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])
 local interface = table.deepcopy(data.raw.container["iron-chest"])
+local source_rod = table.deepcopy(data.raw.container["steel-chest"])
 local connector = {
     type = "simple-entity-with-owner",
     name = "nc-connector",
@@ -37,9 +38,11 @@ heat_pipe.name = "nc-heat-pipe"
 fuel_rod.name = "fuel-rod"
 fuel_rod.picture.layers[1].tint = {255, 255, 0}
 control_rod.name = "control-rod"
-control_rod.picture.layers[1].tint = {255, 0, 0}
+control_rod.picture.layers[1].tint = {0, 255, 0}
 moderator_rod.name = "moderator-rod"
 moderator_rod.picture.layers[1].tint = {255, 0, 255}
+moderator_rod.name = "source-rod"
+moderator_rod.picture.layers[1].tint = {255, 0, 0}
 interface.name = "reactor-interface"
 interface.picture.layers[1].tint = {255, 0, 0}
 apply_flags(heat_interface)
@@ -48,5 +51,6 @@ apply_flags(connector)
 make_composite(fuel_rod)
 make_composite(control_rod)
 make_composite(moderator_rod)
+make_composite(source_rod)
 make_composite(interface)
 data:extend({fuel_rod, control_rod, moderator_rod, interface, heat_interface, heat_pipe, connector})

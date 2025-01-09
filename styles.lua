@@ -1,0 +1,1 @@
+local style = data.raw["gui-style"].default

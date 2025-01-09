@@ -5,6 +5,7 @@ rods.heat_interface_name = "nc-fuel-rod-heat"
 rods.heat_pipe_name = "nc-heat-pipe"
 rods.connector_name = "nc-connector"
 rods.heat_interface_capacity = 1
+rods.meltdown_temperature = 2500
 local heat_interface_capacity = rods.heat_interface_capacity
 
 function rods.setup()
@@ -50,6 +51,7 @@ function rods.on_fuel_rod_built(entity)
         id = id,
         base_fast_flux = 0,
         base_slow_flux = 0,
+        wants_fuel = nil,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
     rods.create_connector(connector, fuel_rod)
@@ -95,9 +97,30 @@ function rods.on_interface_built(entity)
     rods.create_connector(connector, interface)
 end
 
+---@param entity LuaEntity
+function rods.on_source_built(entity)
+    local connector = entity.surface.create_entity{name=rods.connector_name, position=entity.position, force=entity.force}
+    if not connector then
+        error("Could not construct connector for control rod "..tostring(entity.name))
+    end
+    local id = script.register_on_object_destroyed(entity)
+    local source = {
+        type = "source",
+        entity = entity,
+        connector = connector,
+        reactor = nil,
+        id = id,
+        slow = 5,
+        fast = 0,
+    } --[[@as Source]]
+    storage.rods[id] = source
+    rods.create_connector(connector, source)
+end
+
 rods.on_built_by_name = {
     ["fuel-rod"] = rods.on_fuel_rod_built,
     ["control-rod"] = rods.on_control_rod_built,
+    ["source-rod"] = rods.on_source_built,
     ["reactor-interface"] = rods.on_interface_built,
 }
 
@@ -108,6 +131,35 @@ setmetatable(rods.void, void_mt)
 ---@param entity LuaEntity
 function rods.on_built(entity)
     (rods.on_built_by_name[entity.name] or rods.void)(entity)
+end
+
+---@param event EventData.on_object_destroyed
+function rods.on_destroyed(event)
+    local id = event.registration_number
+    if storage.rods[id] then
+        local rod = storage.rods[id] --[[@as FuelRod|ControlRod|Source]]
+        if rod.reactor then
+            rods.destroy_reactor(rod.reactor)
+        end
+        if rod.connector.valid then
+            rod.connector.destroy()
+        end
+        if rod.interface and rod.interface.valid then
+            rod.interface.destroy()
+        end
+        if rod.heat_pipe and rod.heat_pipe.valid then
+            rod.heat_pipe.destroy()
+        end
+        storage.rods[id] = nil
+    elseif storage.interfaces[id] then
+        local interface = storage.interfaces[id] --[[@as Interface]]
+        if interface.reactor then
+            rods.destroy_reactor(interface.reactor)
+        end
+        if interface.connector and interface.connector.valid then
+            interface.connector.destroy()
+        end
+    end
 end
 
 ---@param entity LuaEntity
@@ -138,22 +190,29 @@ end
 
 ---@param rod FuelRod
 function rods.update_fuel_rod_fuel(rod)
-    local inventory = rod.entity.get_main_inventory() --[[@as LuaInventory]]
+    local inventory = rod.entity.get_inventory(defines.inventory.chest) --[[@as LuaInventory]]
     local items = inventory.get_contents()
-    local item = first(items)
-    local fuel_memo = rods.fuels[item.name]
-    if not fuel_memo then
-        -- flash warning?
+    local item
+    local wants = rod.wants_fuel
+    for _, exists in pairs(items) do
+        if wants == exists.name then
+            item = exists
+            break
+        end
+    end
+    if not item then
         return
     end
-    rod.fuel = rods.shallow_copy(fuel_memo)
+    rod.fuel = rods.shallow_copy(Formula.fuels[wants] --[[@as Fuel]]) --[[@as Fuel]]
     inventory.remove{name=item.name, count=1}
 end
 
 ---@param rod FuelRod
 function rods.update_fuel_rod(rod)
     if not rod.fuel then
-        rods.update_fuel_rod_fuel(rod)
+        if rod.wants_fuel then
+            rods.update_fuel_rod_fuel(rod)
+        end
         if rod.fuel then
             goto skip
         end
@@ -179,7 +238,7 @@ function rods.update_fuel_rod(rod)
         slow_flux = slow_flux + insertion * (affector_rod.slow_flux + affector_rod.fast_flux * affector.moderation)
         fast_flux = fast_flux + insertion * (affector_rod.fast_flux * (1 - insertion))
     end
-    local character = rod.fuel.character
+    local character = Formula.characteristics[rod.fuel.character_name]
     local out_slow, out_fast = character.flux(slow_flux, fast_flux, temperature)
     rod.slow_flux = out_slow
     rod.fast_flux = out_fast
@@ -198,7 +257,18 @@ end
 
 ---@param reactor Reactor
 function rods.update_reactor(reactor)
+    for _, rod in pairs(reactor.fuel_rods) do
+        rods.update_fuel_rod(rod)
+    end
+    for _, control_rod in pairs(reactor.control_rods) do
+        rods.update_control_rod(control_rod)
+    end
+    if reactor.visualize then
+        rendering.clear("nuclearcraft")
+        for _, rod in pairs(reactor.fuel_rods) do
 
+        end
+    end
 end
 
 rods.add_connector_to_reactor = {
@@ -262,6 +332,7 @@ function rods.create_reactor(source)
         enabled = false,
         outputs = {},
         inputs = {},
+        sources = {},
     } --[[@as Reactor]]
     local is_valid_reactor = true
     for _, neighbor in pairs(neighbors) do
@@ -355,6 +426,9 @@ function rods.destroy_reactor(reactor)
     end
     for _, rod in pairs(reactor.control_rods) do
         rod.reactor = nil
+    end
+    for _, source in pairs(reactor.sources) do
+        source.reactor = nil
     end
     for _, interface in pairs(reactor.inputs) do
         interface.reactor = nil
