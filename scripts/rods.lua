@@ -66,6 +66,7 @@ function rods.on_fuel_rod_built(entity)
         unpenalized = 1,
         penalty_val = 1,
         affectable_distance = 10,
+        delta_flux = 0,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
     rods.create_connector(connector, fuel_rod)
@@ -275,7 +276,8 @@ end
 
 ---@param rod ControlRod
 function rods.update_control_rod(rod)
-
+    local target = rod.entity.get_signal({type="virtual", name="signal-S"}, defines.wire_connector_id.circuit_green)
+    rod.insertion = math.max(math.min(target / 1000, 1), 0.1)
 end
 
 ---@param rod FuelRod
@@ -348,6 +350,8 @@ function rods.update_fuel_rod(rod)
         return
     end
     ::skip::
+    local last_sflux = rod.slow_flux
+    local last_fflux = rod.fast_flux
     local slow_flux = rod.base_slow_flux
     local fast_flux = rod.base_fast_flux
     local temperature = rod.temperature
@@ -384,6 +388,7 @@ function rods.update_fuel_rod(rod)
     rod.in_fast_flux = fast_flux
     rod.interface.set_heat_setting{mode="add", temperature=rod.power / heat_interface_capacity / 60}
     rod.temperature = rod.interface.temperature
+    rod.delta_flux = rod.slow_flux + rod.fast_flux - last_sflux - last_fflux
     local fuel = rod.fuel --[[@as Fuel]]
     fuel.fuel_remaining = fuel.fuel_remaining - rod.power / rod.efficiency
     if fuel.fuel_remaining <= 0 then
@@ -392,10 +397,13 @@ function rods.update_fuel_rod(rod)
     if rod.csection then
         local section = rod.csection --[[@as LuaLogisticSection]]
         section.set_slot(1, {value={type="item", name="fuel-rod", quality="normal"}, min=1})
-        section.set_slot(2, {value={type="virtual", name="signal-T", quality="normal"}, min=math.min(temperature, 1000000)})
-        section.set_slot(3, {value={type="virtual", name="signal-P", quality="normal"}, min=math.min(rod.power * 1000, 1000000)})
+        section.set_slot(2, {value={type="virtual", name="signal-temp", quality="normal"}, min=math.min(temperature, 1000000)})
+        section.set_slot(3, {value={type="virtual", name="signal-kW", quality="normal"}, min=math.min(rod.power * 1000, 1000000)})
         section.set_slot(4, {value={type="virtual", name="signal-E", quality="normal"}, min=math.min(rod.efficiency * 100, 1000000)})
-        section.set_slot(4, {value={type="virtual", name="signal-F", quality="normal"}, min=math.min(rod.fuel.fuel_remaining, 1000000)})
+        section.set_slot(5, {value={type="virtual", name="signal-fuel", quality="normal"}, min=math.min(rod.fuel.fuel_remaining, 1000000)})
+        section.set_slot(6, {value={type="virtual", name="signal-nFs", quality="normal"}, min=math.min(rod.slow_flux * 100, 1000000)})
+        section.set_slot(7, {value={type="virtual", name="signal-nFf", quality="normal"}, min=math.min(rod.fast_flux * 100, 1000000)})
+        section.set_slot(8, {value={type="virtual", name="signal-deltanF", quality="normal"}, min=math.min(rod.delta_flux * 100, 1000000)})
     end
 end
 

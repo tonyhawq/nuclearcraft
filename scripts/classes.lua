@@ -56,6 +56,7 @@
 ---@field affectable_distance number
 ---@field circuit LuaEntity?
 ---@field csection LuaLogisticSection?
+---@field delta_flux number
 
 ---@class (exact) ControlRod
 ---@field type "control"

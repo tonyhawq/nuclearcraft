@@ -36,8 +36,10 @@ circuit_interface.name = "nc-circuit-interface"
 circuit_interface.sprites = nil
 heat_interface.name = "nc-fuel-rod-heat"
 heat_interface.heat_buffer.specific_heat = "1MJ"
+heat_interface.heat_buffer.max_temperature = 3000
 heat_interface.heat_buffer.min_temperature_gradient = 1
 heat_pipe.name = "nc-heat-pipe"
+heat_pipe.heat_buffer.max_temperature = 3000
 fuel_rod.name = "fuel-rod"
 fuel_rod.picture.layers[1].tint = {255, 255, 0}
 fuel_rod.minable.result = "fuel-rod"
@@ -153,3 +155,6 @@ make_composite(source_rod)
 make_composite(reflector_rod)
 make_composite(interface)
 data:extend({fuel_rod, control_rod, moderator_rod, reflector_rod, source_rod, interface, heat_interface, heat_pipe, connector, circuit_interface})
+
+
+require("prototypes.signal")
