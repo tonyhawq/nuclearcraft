@@ -109,6 +109,12 @@ function rod_gui.open(player, entity)
         style = "production_progressbar",
         caption = {"nuclearcraft.power-production"}
     }
+    local fuel_burnup = inside_frame.add{
+        type = "progressbar",
+        name = "burnup",
+        style = "production_progressbar",
+        caption = {"nuclearcraft.burnup"}
+    }
     local temp = inside_frame.add{
         type = "progressbar",
         name = "temperature",
@@ -117,6 +123,7 @@ function rod_gui.open(player, entity)
     }
     temp.style.horizontally_stretchable = true
     power.style.horizontally_stretchable = true
+    fuel_burnup.style.horizontally_stretchable = true
     inside_frame.add{
         type = "line",
         style = "line",
@@ -212,6 +219,32 @@ function rod_gui.open(player, entity)
         style = "line",
     }
     inside_frame.add{
+        type = "label",
+        name = "efficiency-label",
+        style = "bold_label",
+        caption = {"nuclearcraft.efficiency"},
+    }
+    local efficiency = inside_frame.add{
+        name = "efficiency",
+        type = "progressbar",
+        style = "production_progressbar",
+        caption = {"nuclearcraft.efficiency"},
+    }
+    inside_frame.add{
+        type = "label",
+        name = "penalty-label",
+        style = "bold_label",
+        caption = {"nuclearcraft.efficiency-penalty"},
+    }
+    local penalty = inside_frame.add{
+        name = "efficiency_penalty",
+        type = "progressbar",
+        style = "production_progressbar",
+        caption = {"nuclearcraft.efficiency-penalty"},
+    }
+    efficiency.style.horizontally_stretchable = true
+    penalty.style.horizontally_stretchable = true
+    inside_frame.add{
         type = "button",
         name = "see_affectors",
         style = "button",
@@ -263,11 +296,11 @@ function rod_gui.player_clicked_gui(event, player)
         local offset = 0
         for _, affector in pairs(rod.affectors) do
             offset = offset + 1
-            rendering.draw_line{from={rod.entity.position.x + offset / 32, rod.entity.position.y}, to=affector.fuel_rod.entity.position, surface=rod.entity.surface,color={0, 0, 255},width=1}
+            rendering.draw_line{from={rod.entity.position.x + offset / 32, rod.entity.position.y}, to=affector.affector.entity.position, surface=rod.entity.surface,color={0, 0, 255},width=1}
             local coffset = 0
             for _, control_rod in pairs(affector.control_rods) do
                 coffset = coffset + 2
-                rendering.draw_line{from={affector.fuel_rod.entity.position.x + coffset / 32, affector.fuel_rod.entity.position.y + coffset / 32}, to=control_rod.entity.position, surface=affector.fuel_rod.entity.surface, color={0, 255, 0}, width=1}
+                rendering.draw_line{from={affector.affector.entity.position.x + coffset / 32, affector.affector.entity.position.y + coffset / 32}, to=control_rod.entity.position, surface=affector.affector.entity.surface, color={0, 255, 0}, width=1}
             end
         end
     elseif event.element.name == "visualize_flux" then
@@ -278,6 +311,21 @@ function rod_gui.player_clicked_gui(event, player)
             return
         end
         reactor.visualize = true
+    end
+end
+
+---@param value number
+---@param postfix "W"|"J"?
+---@return number, string
+local function select_unit(value, postfix)
+    if value > 1000000000 then
+        return value / 1000000000, "G"..(postfix or "W")
+    elseif value > 1000000 then
+        return value / 1000000, "M"..(postfix or "W")
+    elseif value > 1000 then
+        return value / 1000, "k"..(postfix or "W")
+    else
+        return value, (postfix or "W")
     end
 end
 
@@ -292,6 +340,7 @@ function rod_gui.update(player)
     local fuel = rod.fuel
     local fuel_flow = root.frame.fuel
     local character
+    local inside_frame = root.frame
     local temperature_bar = root.frame.temperature
     local temperature = rod.interface.temperature --[[@as number]]
     temperature_bar.value = temperature / Rods.meltdown_temperature
@@ -300,10 +349,13 @@ function rod_gui.update(player)
         status.status_led.sprite = "utility.status_working"
         status.status_label.caption = {"nuclearcraft.working"}
         fuel_flow.fuel_remaining.value = fuel.fuel_remaining / fuel.total_fuel
-        fuel_flow.fuel_remaining.caption = {"nuclearcraft.mj", fuel.fuel_remaining}
+        local fuel_number, fuel_unit = select_unit(fuel.fuel_remaining * 1000000, "J")
+        fuel_flow.fuel_remaining.caption = {"nuclearcraft.number-unit", string.format("%.1f", fuel_number), fuel_unit}
         character = Formula.characteristics[fuel.character_name]
         fuel_flow.burning_fuel.sprite = "item."..fuel.item
         fuel_flow.burnt_fuel.sprite = "item."..fuel.burnt_item
+        inside_frame.efficiency.value = rod.efficiency / character.max_efficiency
+        inside_frame.efficiency_penalty.value = 1 - rod.penalty_val
         if not rod.wants_fuel then
             fuel_flow.fuel_selection.elem_value = nil
         else
@@ -311,13 +363,18 @@ function rod_gui.update(player)
         end
     else
         if rod.wants_fuel then
+            inside_frame.efficiency.value = 0
+            inside_frame.efficiency_penalty.value = 1 - rod.base_efficiency
             fuel_flow.fuel_remaining.caption = {"nuclearcraft.no-fuel"}
             status.status_led.sprite = "utility.status_inactive"
+            status.status_label.caption = {"nuclearcraft.no-fuel"}
             fuel_flow.burning_fuel.sprite = "item."..rod.wants_fuel
             fuel_flow.burnt_fuel.sprite = nil
             fuel_flow.fuel_selection.elem_value = rod.wants_fuel
             character = Formula.characteristics[Formula.fuels[rod.wants_fuel].character_name]
         else
+            inside_frame.efficiency.value = 0
+            inside_frame.efficiency_penalty.value = 1 - rod.base_efficiency
             status.status_led.sprite = "utility.status_inactive"
             status.status_label.caption = {"nuclearcraft.no-fuel-selected"}
             fuel_flow.burning_fuel.sprite = nil
@@ -325,23 +382,37 @@ function rod_gui.update(player)
             fuel_flow.fuel_selection.elem_value = nil
         end
     end
+    inside_frame.efficiency.caption = string.format("%.0f%%", rod.efficiency * 100)
+    inside_frame.efficiency_penalty.caption = string.format("%.0f%%", inside_frame.efficiency_penalty.value * 100)
     local flux_percentage_in = 1
     local flux_percentage_out = 1
     if character then
+        local target_fast = character.target_fast_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature)
+        local target_slow = character.target_slow_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature) 
         flux_percentage_in = ((rod.in_slow_flux + rod.in_fast_flux) / math.max(
-            character.target_fast_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature) +
-            character.target_slow_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature), 1)
+            target_fast +
+            target_slow, 1)
         )
+        root.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "nF", string.format("%.3f", target_fast + target_slow), "nF"}
         flux_percentage_out = (rod.slow_flux + rod.fast_flux) / (character.max_slow_flux + character.max_fast_flux)
+    else
+
     end
     rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
     rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
+    root.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "nF"}
     if rod.power > 0 then
-        root.frame.power.value = rod.power / (rod.fuel or {max_power = 40}).max_power
-        root.frame.power.caption = {"nuclearcraft.number-unit", string.format("%.1f", rod.power), "MW"}
+        root.frame.power.value = rod.power / (character or {max_power = 40}).max_power
+        root.frame.burnup.value = rod.power / rod.efficiency / rod.power
+        local power, power_unit = select_unit(rod.power * 1000000)
+        local burnup, burnup_unit = select_unit(rod.power / rod.efficiency * 1000000)
+        root.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power), power_unit}
+        root.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
     else
         root.frame.power.value = 0
         root.frame.power.caption = {"nuclearcraft.power-production"}
+        root.frame.burnup.value = 0
+        root.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
     end
     if not rod.reactor then
         status.status_led.sprite = "utility.status_not_working"
@@ -369,7 +440,7 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
         fast_flux = rod.fast_flux
     end
     flux_root.total_flux.value = 0
-    flux_root.total_flux.caption = {"nuclearcraft.number-unit", fast_flux + slow_flux, "nF"}
+    flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "nF"}
     if fast_flux + slow_flux > 0 then
         local total_flux = fast_flux + slow_flux
         if flux_percentage then
@@ -377,7 +448,7 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
             minibar_width = math.max(math.min(rod_gui.bar_width * real_flux_percentage, rod_gui.bar_width), min_width)
         end
         flux_root.total_flux.value = real_flux_percentage
-        flux_root.total_flux.caption = {"nuclearcraft.number-unit", fast_flux + slow_flux, "nF"}
+        flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "nF"}
         local total = fast_flux + slow_flux
         in_flux.fast.value = 1
         in_flux.slow.value = 1
@@ -391,6 +462,8 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
         fast_style.color = {0, (math.min(fast_percent, 1) + 0.5) / 1.5, 0}
         in_flux.fast.caption = string.format("%.2f%%",fast_percent * 100)
         in_flux.slow.caption = string.format("%.2f%%",slow_percent * 100)
+        in_flux.fast.tooltip = {"nuclearcraft.number-unit", string.format("%.2f%%",fast_percent * 100), {"nuclearcraft.fast-flux"}}
+        in_flux.slow.tooltip = {"nuclearcraft.number-unit", string.format("%.2f%%",slow_percent * 100), {"nuclearcraft.slow-flux"}}
         if minibar_width > min_width * 2 then
             if slow_style.minimal_width + fast_style.minimal_width > minibar_width then
                 if fast_style.minimal_width == min_width then

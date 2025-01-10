@@ -3,6 +3,7 @@ Schedule = require("__nuclearcraft__.scripts.schedule")
 Rods = require("__nuclearcraft__.scripts.rods")
 InterfaceGUI = require("__nuclearcraft__.scripts.interface-gui")
 RodGUI = require("__nuclearcraft__.scripts.rod-gui")
+ControlRodGUI = require("__nuclearcraft__.scripts.control-rod-gui")
 
 script.on_init(function()
     Rods.setup()
@@ -36,17 +37,23 @@ script.on_event(defines.events.on_object_destroyed, function(event)
     Rods.on_destroyed(event)
 end)
 
+script.on_event(defines.events.on_entity_settings_pasted, function(event)
+    Rods.on_paste(event.source, event.destination)
+end)
+
 script.on_event(defines.events.on_gui_opened, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     local entity = event.entity --[[@as LuaEntity]]
     InterfaceGUI.open(player, entity)
     RodGUI.open(player, entity)
+    ControlRodGUI.open(player, entity)
 end)
 
 script.on_event(defines.events.on_gui_closed, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.close(player)
     RodGUI.close(player)
+    ControlRodGUI.close(player)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)

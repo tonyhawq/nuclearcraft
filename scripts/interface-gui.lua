@@ -22,12 +22,81 @@ function interface_gui.open(player, entity)
         name=interface_gui.root,
         anchor = anchor,
         direction = "vertical",
-        tags = {id = script.register_on_object_destroyed(entity)}
+        tags = {id = script.register_on_object_destroyed(entity)},
+        style = "inset_frame_container_frame"
     }
-    container.add{
-        type="button",
-        name="create_reactor"
+    local label_flow = container.add{
+        name = "label-flow",
+        type = "flow",
+        direction = "horizontal",
     }
+    label_flow.style.bottom_padding = 4
+    label_flow.style.horizontally_stretchable = true
+    label_flow.style.horizontal_spacing = 8
+    local label = label_flow.add{
+        name = "interface-gui-label",
+        type = "label",
+        style = "frame_title",
+        caption = {"nuclearcraft.interface-gui-label-output"}
+    }
+    label.style.top_margin = -3
+    label.style.bottom_padding = 3
+    local inside_frame = container.add{
+        type = "frame",
+        name = "frame",
+        style = "entity_frame",
+        direction = "vertical"
+    }
+    local status_flow = inside_frame.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "status_flow",
+    }
+    status_flow.add{
+        type = "sprite",
+        name = "status_led",
+        sprite = "utility.status_inactive"
+    }
+    status_flow.add{
+        type = "label",
+        name = "status_label",
+        style = "label",
+        caption = {"nuclearcraft.no-reactor"}
+    }
+    inside_frame.add{
+        type = "label",
+        name = "mode-switch-label",
+        caption = {"nuclearcraft.interface-switch-label"},
+        style = "semibold_label"
+    }
+    inside_frame.add{
+        type = "switch",
+        name = "mode",
+        allow_none_state = true,
+        left_label_caption = {"nuclearcraft.input-switch-state"},
+        right_label_caption = {"nuclearcraft.output-switch-state"},
+    }
+    inside_frame.add{
+        type = "line",
+        style = "line",
+    }
+    local button_flow = inside_frame.add{
+        type = "flow",
+        name = "button_flow",
+        direction = "horizontal",
+    }
+    button_flow.add{
+        type = "button",
+        name = "reactor-disassemble",
+        style = "red_button",
+        caption = {"nuclearcraft.reactor-disassemble"},
+    }.style.horizontal_align = "left"
+    button_flow.add{
+        type = "button",
+        name = "reactor-assemble",
+        style = "green_button",
+        caption = {"nuclearcraft.reactor-assemble"},
+    }.style.horizontal_align = "right"
 end
 
 ---@param event EventData.on_gui_click
@@ -37,8 +106,13 @@ function interface_gui.player_clicked_gui(event, player)
     if not root or not root.tags or not root.tags.id then
         return
     end
-    if event.element.name == "create_reactor" then
+    if event.element.name == "reactor-assemble" then
         Rods.create_reactor(storage.interfaces[root.tags.id])
+    elseif event.element.name == "reactor-disassemble" then
+        local reactor = storage.interfaces[root.tags.id]--[[@as Interface]].reactor
+        if reactor then
+            Rods.destroy_reactor(reactor)
+        end
     end
 end
 

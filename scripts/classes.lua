@@ -11,14 +11,16 @@
 ---@field target_fast_flux GenericFormula
 ---@field max_slow_flux number
 ---@field max_fast_flux number
+---@field max_efficiency number
+---@field max_power number
 
 ---@class (exact) Connector
 ---@field entity LuaEntity
----@field owner ControlRod|FuelRod|Interface
+---@field owner ControlRod|FuelRod|Interface|Source|Reflector|Moderator
 
 ---@class (exact) Affector
 ---@field control_rods ControlRod[]
----@field fuel_rod FuelRod
+---@field affector FuelRod|Source
 ---@field moderation number
 
 ---@class (exact) Fuel
@@ -41,12 +43,19 @@
 ---@field base_fast_flux number
 ---@field base_slow_flux number
 ---@field efficiency number
+---@field penalty_val number
+---@field unpenalized number
 ---@field interface LuaEntity?
 ---@field entity LuaEntity
 ---@field connector LuaEntity
 ---@field reactor Reactor?
 ---@field id integer
 ---@field temperature number
+---@field base_efficiency number
+---@field basic_sources Source[]
+---@field affectable_distance number
+---@field circuit LuaEntity?
+---@field csection LuaLogisticSection?
 
 ---@class (exact) ControlRod
 ---@field type "control"
@@ -56,6 +65,8 @@
 ---@field connector LuaEntity
 ---@field reactor Reactor?
 ---@field id integer
+---@field circuit LuaEntity?
+---@field csection LuaLogisticSection?
 
 ---@class (exact) Moderator
 ---@field type "mod"
@@ -72,8 +83,20 @@
 ---@field entity LuaEntity
 ---@field reactor Reactor?
 ---@field id integer
----@field slow number
----@field fast number
+---@field slow_flux number
+---@field fast_flux number
+---@field penalty number
+---@field range number
+
+---@class (exact) Reflector
+---@field type "reflector"
+---@field id integer
+---@field entity LuaEntity
+---@field connector LuaEntity?
+---@field reactor Reactor?
+---@field heat_pipe LuaEntity?
+---@field reflection_distance number
+---@field bounce_limit number
 
 ---@class (exact) Interface
 ---@field type "interface"
@@ -86,9 +109,13 @@
 ---@class (exact) Reactor
 ---@field fuel_rods FuelRod[]
 ---@field control_rods ControlRod[]
+---@field moderators Moderator[]
 ---@field sources Source[]
+---@field reflectors Reflector[]
 ---@field enabled boolean
 ---@field id number
 ---@field outputs Interface[]
 ---@field inputs Interface[]
 ---@field visualize boolean?
+---@field need_fuel FuelRod[]
+---@field have_spent FuelRod[]

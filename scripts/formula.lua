@@ -1,11 +1,13 @@
 local formula = {}
 
+formula.max = 1000000
+
 ---@type table<string, FuelCharacteristic>
 formula.characteristics = {
     ["uranium"] = {
         flux = function (slow_flux, fast_flux, temperature)
-            local output = ((slow_flux/50)^2+(fast_flux/100)^2*0.1)/math.max(temperature/1500, 0.1)-0.1
-            return output * 0.1, output * 0.9
+            local output = ((slow_flux/50)^2+slow_flux/20+(fast_flux/100)^2*0.1)/math.max(temperature/1500, 0.1)-0.1
+            return math.min(output * 0.1, formula.max), math.min(output * 0.9, formula.max)
         end,
         power = function (slow_flux, fast_flux)
             return slow_flux
@@ -21,6 +23,8 @@ formula.characteristics = {
         end,
         max_fast_flux = 0,
         max_slow_flux = 40,
+        max_efficiency = 15,
+        max_power = 40,
     }
 }
 
@@ -30,8 +34,8 @@ formula.fuels = {
         item = "uranium-fuel-cell",
         burnt_item = "depleted-uranium-fuel-cell",
         character_name = "uranium",
-        fuel_remaining = 40,
-        total_fuel = 40
+        fuel_remaining = 8000,
+        total_fuel = 8000
     } --[[@as Fuel]]
 }
 

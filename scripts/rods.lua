@@ -2,6 +2,7 @@ local rods = {}
 
 rods.interface_name = "reactor-interface"
 rods.heat_interface_name = "nc-fuel-rod-heat"
+rods.circuit_interface_name = "nc-circuit-interface"
 rods.heat_pipe_name = "nc-heat-pipe"
 rods.connector_name = "nc-connector"
 rods.heat_interface_capacity = 1
@@ -10,14 +11,16 @@ local heat_interface_capacity = rods.heat_interface_capacity
 
 function rods.setup()
     storage.rods = storage.rods or {} --[[@as table<FuelRod>]]
+    storage.reflectors = storage.reflectors or {} --[[@as table<Reflector>]]
     storage.interfaces = storage.interfaces or {} --[[@as table<Interface>]]
     storage.connectors = storage.connectors or {} --[[@as table<Connector>]]
+    storage.moderators = storage.moderators or {} --[[@as table<Moderator>]]
     storage.reactors = storage.reactors or {} --[[@as table<Reactor>]]
     storage.last_reactor_id = storage.last_reactor_id or 0
 end
 
 ---@param connector LuaEntity
----@param owner FuelRod|ControlRod|Interface
+---@param owner FuelRod|ControlRod|Interface|Source|Reflector|Moderator
 function rods.create_connector(connector, owner)
     storage.connectors[connector.unit_number] = {
         entity = connector,
@@ -32,6 +35,10 @@ function rods.on_fuel_rod_built(entity)
     if not connector then
         error("Could not construct connector for fuel rod "..tostring(entity.name))
     end
+    local circuit = entity.surface.create_entity{name=rods.circuit_interface_name, position=entity.position, force=entity.force}
+    local section = ((circuit--[[@as LuaEntity]]).get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]).get_section(1)
+    entity.get_wire_connector(defines.wire_connector_id.circuit_green, true).connect_to((circuit --[[@as LuaEntity]]).get_wire_connector(defines.wire_connector_id.circuit_green, true))
+    entity.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to((circuit --[[@as LuaEntity]]).get_wire_connector(defines.wire_connector_id.circuit_red, true))
     local id = script.register_on_object_destroyed(entity)
     local fuel_rod = {
         fuel = nil,
@@ -46,12 +53,19 @@ function rods.on_fuel_rod_built(entity)
         temperature = 0,
         interface = interface,
         entity = entity,
+        circuit = circuit,
+        csection = section,
         connector = connector,
         reactor = nil,
         id = id,
         base_fast_flux = 0,
         base_slow_flux = 0,
         wants_fuel = nil,
+        base_efficiency = 1,
+        basic_sources = {},
+        unpenalized = 1,
+        penalty_val = 1,
+        affectable_distance = 10,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
     rods.create_connector(connector, fuel_rod)
@@ -64,6 +78,10 @@ function rods.on_control_rod_built(entity)
     if not connector then
         error("Could not construct connector for control rod "..tostring(entity.name))
     end
+    local circuit = entity.surface.create_entity{name=rods.circuit_interface_name, position=entity.position, force=entity.force}
+    entity.get_wire_connector(defines.wire_connector_id.circuit_green, true).connect_to((circuit --[[@as LuaEntity]]).get_wire_connector(defines.wire_connector_id.circuit_green, true))
+    entity.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to((circuit --[[@as LuaEntity]]).get_wire_connector(defines.wire_connector_id.circuit_red, true))
+    local section = ((circuit--[[@as LuaEntity]]).get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]).get_section(1)
     local id = script.register_on_object_destroyed(entity)
     local control_rod = {
         type = "control",
@@ -71,6 +89,8 @@ function rods.on_control_rod_built(entity)
         heat_pipe = pipe,
         entity = entity,
         connector = connector,
+        circuit = circuit,
+        csection = section,
         reactor = nil,
         id = id,
     } --[[@as ControlRod]]
@@ -110,18 +130,63 @@ function rods.on_source_built(entity)
         connector = connector,
         reactor = nil,
         id = id,
-        slow = 5,
-        fast = 0,
+        slow_flux = 6,
+        fast_flux = 0,
+        range = 3,
+        penalty = 0.5,
     } --[[@as Source]]
     storage.rods[id] = source
     rods.create_connector(connector, source)
+end
+
+---@param entity LuaEntity
+function rods.on_reflector_built(entity)
+    local connector = entity.surface.create_entity{name=rods.connector_name, position=entity.position, force=entity.force}
+    if not connector then
+        error("Could not construct connector for control rod "..tostring(entity.name))
+    end
+    local pipe = entity.surface.create_entity{name=rods.heat_pipe_name, position=entity.position, force=entity.force}
+    local id = script.register_on_object_destroyed(entity)
+    local reflector = {
+        type = "reflector",
+        entity = entity,
+        heat_pipe = pipe,
+        connector = connector,
+        id = id,
+        reflection_distance = 5,
+        bounce_limit = 2,
+    } --[[@as Reflector]]
+    storage.reflectors[id] = reflector
+    rods.create_connector(connector, reflector)
+end
+
+---@param entity LuaEntity
+function rods.on_moderator_built(entity)
+    local connector = entity.surface.create_entity{name=rods.connector_name, position=entity.position, force=entity.force}
+    if not connector then
+        error("Could not construct connector for control rod "..tostring(entity.name))
+    end
+    local pipe = entity.surface.create_entity{name=rods.heat_pipe_name, position=entity.position, force=entity.force}
+    local id = script.register_on_object_destroyed(entity)
+    local moderator = {
+        type = "mod",
+        entity = entity,
+        connector = connector,
+        heat_pipe = pipe,
+        id = id,
+        conversion = 0.8,
+    } --[[@as Moderator]]
+    storage.moderators[id] = moderator
+    rods.create_connector(connector, moderator)
 end
 
 rods.on_built_by_name = {
     ["fuel-rod"] = rods.on_fuel_rod_built,
     ["control-rod"] = rods.on_control_rod_built,
     ["source-rod"] = rods.on_source_built,
+    ["reflector-rod"] = rods.on_reflector_built,
     ["reactor-interface"] = rods.on_interface_built,
+    ["moderator-rod"] = rods.on_moderator_built,
 }
 
 rods.void = {}
@@ -141,6 +206,9 @@ function rods.on_destroyed(event)
         if rod.reactor then
             rods.destroy_reactor(rod.reactor)
         end
+        if rod.circuit and rod.circuit.valid then
+            rod.circuit.destroy()
+        end
         if rod.connector.valid then
             rod.connector.destroy()
         end
@@ -151,6 +219,28 @@ function rods.on_destroyed(event)
             rod.heat_pipe.destroy()
         end
         storage.rods[id] = nil
+    elseif storage.reflectors[id] then
+        local reflector = storage.reflectors[id] --[[@as Reflector]]
+        if reflector.reactor then
+            rods.destroy_reactor(reflector.reactor)
+        end
+        if reflector.connector.valid  then
+            reflector.connector.destroy()
+        end
+        if reflector.heat_pipe and reflector.heat_pipe.valid then
+            reflector.heat_pipe.destroy()
+        end
+    elseif storage.moderators[id] then
+        local moderator = storage.moderators[id] --[[@as Moderator]]
+        if moderator.reactor then
+            rods.destroy_reactor(moderator.reactor)
+        end
+        if moderator.connector.valid  then
+            moderator.connector.destroy()
+        end
+        if moderator.heat_pipe and moderator.heat_pipe.valid then
+            moderator.heat_pipe.destroy()
+        end
     elseif storage.interfaces[id] then
         local interface = storage.interfaces[id] --[[@as Interface]]
         if interface.reactor then
@@ -201,10 +291,42 @@ function rods.update_fuel_rod_fuel(rod)
         end
     end
     if not item then
+        rod.fuel = nil
         return
     end
-    rod.fuel = rods.shallow_copy(Formula.fuels[wants] --[[@as Fuel]]) --[[@as Fuel]]
+    local memo = Formula.fuels[item.name]
+    rod.fuel = {
+        item = memo.item,
+        burnt_item = memo.burnt_item,
+        character_name = memo.character_name,
+        fuel_remaining = memo.fuel_remaining,
+        total_fuel = memo.total_fuel,
+    }
     inventory.remove{name=item.name, count=1}
+end
+
+function rods.fake_update_fuel_rod(rod)
+    local slow_flux = rod.base_slow_flux
+    local fast_flux = rod.base_fast_flux
+    local temperature = rod.temperature
+    local penalty = 1
+    for _, affector in pairs(rod.affectors) do
+        local affector_rod = affector.affector
+        local insertion = 1
+        for _, control_rod in pairs(affector.control_rods) do
+            insertion = insertion * control_rod.insertion
+        end
+        insertion = 1 - insertion
+        slow_flux = slow_flux + insertion * (affector_rod.slow_flux + affector_rod.fast_flux * affector.moderation)
+        fast_flux = fast_flux + insertion * (affector_rod.fast_flux * (1 - affector.moderation))
+        if affector_rod.penalty then
+            penalty = penalty * affector_rod.penalty
+        end
+    end
+    rod.penalty_val = penalty * rod.base_efficiency
+    rod.in_slow_flux = slow_flux
+    rod.in_fast_flux = fast_flux
+    rod.temperature = rod.interface.temperature
 end
 
 ---@param rod FuelRod
@@ -221,6 +343,7 @@ function rods.update_fuel_rod(rod)
         rod.in_slow_flux = 0
         rod.in_fast_flux = 0
         rod.efficiency = 0
+        rod.power = 0
         rod.interface.set_heat_setting{mode="add", temperature=0} ---@diagnostic disable-line
         return
     end
@@ -228,22 +351,35 @@ function rods.update_fuel_rod(rod)
     local slow_flux = rod.base_slow_flux
     local fast_flux = rod.base_fast_flux
     local temperature = rod.temperature
+    local penalty = 1
     for _, affector in pairs(rod.affectors) do
-        local affector_rod = affector.fuel_rod
+        local affector_rod = affector.affector
         local insertion = 1
+        local crods = false
         for _, control_rod in pairs(affector.control_rods) do
+            crods = true
             insertion = insertion * control_rod.insertion
         end
-        insertion = 1 - insertion
+        if crods then
+            insertion = 1 - insertion
+        end
         slow_flux = slow_flux + insertion * (affector_rod.slow_flux + affector_rod.fast_flux * affector.moderation)
-        fast_flux = fast_flux + insertion * (affector_rod.fast_flux * (1 - insertion))
+        fast_flux = fast_flux + insertion * (affector_rod.fast_flux * (1 - affector.moderation))
+        if affector_rod.penalty then
+            penalty = penalty * affector_rod.penalty
+        end
     end
     local character = Formula.characteristics[rod.fuel.character_name]
+    slow_flux = math.max(slow_flux, 0)
+    fast_flux = math.max(fast_flux, 0)
     local out_slow, out_fast = character.flux(slow_flux, fast_flux, temperature)
-    rod.slow_flux = out_slow
-    rod.fast_flux = out_fast
+    rod.slow_flux = math.max(out_slow, 0)
+    rod.fast_flux = math.max(out_fast, 0)
     rod.power = character.power(slow_flux, fast_flux, temperature)
-    rod.efficiency = character.efficiency(slow_flux, fast_flux, temperature)
+    local norm_eff = character.efficiency(slow_flux, fast_flux, temperature)
+    rod.efficiency = norm_eff * penalty * rod.base_efficiency
+    rod.penalty_val = penalty * rod.base_efficiency
+    rod.unpenalized = norm_eff
     rod.in_slow_flux = slow_flux
     rod.in_fast_flux = fast_flux
     rod.interface.set_heat_setting{mode="add", temperature=rod.power / heat_interface_capacity / 60}
@@ -252,6 +388,14 @@ function rods.update_fuel_rod(rod)
     fuel.fuel_remaining = fuel.fuel_remaining - rod.power / rod.efficiency
     if fuel.fuel_remaining <= 0 then
         rods.update_fuel_rod_fuel(rod)
+    end
+    if rod.csection then
+        local section = rod.csection --[[@as LuaLogisticSection]]
+        section.set_slot(1, {value={type="item", name="fuel-rod", quality="normal"}, min=1})
+        section.set_slot(2, {value={type="virtual", name="signal-T", quality="normal"}, min=math.min(temperature, 1000000)})
+        section.set_slot(3, {value={type="virtual", name="signal-P", quality="normal"}, min=math.min(rod.power * 1000, 1000000)})
+        section.set_slot(4, {value={type="virtual", name="signal-E", quality="normal"}, min=math.min(rod.efficiency * 100, 1000000)})
+        section.set_slot(4, {value={type="virtual", name="signal-F", quality="normal"}, min=math.min(rod.fuel.fuel_remaining, 1000000)})
     end
 end
 
@@ -271,9 +415,16 @@ function rods.update_reactor(reactor)
     end
 end
 
+---@class (exact) AddConnectorToReactorParam
+---@field interface fun(connector: Connector, reactor: Reactor)
+---@field control fun(connector: Connector, reactor: Reactor)
+---@field fuel fun(connector: Connector, reactor: Reactor)
+---@field source fun(connector: Connector, reactor: Reactor)
+---@field reflector fun(connector: Connector, reactor: Reactor)
+---@field mod fun(connector: Connector, reactor: Reactor)
+
+---@type AddConnectorToReactorParam
 rods.add_connector_to_reactor = {
-    ---@param connector Connector
-    ---@param reactor Reactor
     interface = function (connector, reactor)
         local interface = connector.owner
         ---@cast interface Interface
@@ -284,17 +435,25 @@ rods.add_connector_to_reactor = {
             reactor.outputs[interface.id] = interface
         end
     end,
-    ---@param connector Connector
-    ---@param reactor Reactor
     control = function (connector, reactor)
         connector.owner.reactor = reactor
         reactor.control_rods[connector.owner--[[@as ControlRod]].id] = connector.owner --[[@as ControlRod]]
     end,
-    ---@param connector Connector
-    ---@param reactor Reactor
     fuel = function (connector, reactor)
         connector.owner.reactor = reactor
         reactor.fuel_rods[connector.owner--[[@as FuelRod]].id] = connector.owner --[[@as FuelRod]]
+    end,
+    source = function (connector, reactor)
+        connector.owner.reactor = reactor
+        reactor.sources[connector.owner--[[@as Source]].id] = connector.owner --[[@as Source]]
+    end,
+    reflector = function (connector, reactor)
+        connector.owner.reactor = reactor
+        reactor.reflectors[connector.owner--[[@as Reflector]].id] = connector.owner --[[@as Reflector]]
+    end,
+    mod = function (connector, reactor)
+        connector.owner.reactor = reactor
+        reactor.moderators[connector.owner --[[@as Moderator]].id] = connector.owner --[[@as Moderator]]
     end,
 }
 
@@ -333,6 +492,10 @@ function rods.create_reactor(source)
         outputs = {},
         inputs = {},
         sources = {},
+        reflectors = {},
+        moderators = {},
+        need_fuel = {},
+        have_spent = {},
     } --[[@as Reactor]]
     local is_valid_reactor = true
     for _, neighbor in pairs(neighbors) do
@@ -355,20 +518,56 @@ function rods.create_reactor(source)
     storage.reactors[reactor.id] = reactor
 end
 
+---@param entity LuaEntity
+---@return Reflector?
+function rods.owns_reflector(entity)
+    local con = storage.connectors[entity.unit_number]
+    if con and con.owner and con.owner.type == "reflector" then
+        return con.owner
+    end
+end
+
 ---@param config table
 ---@return table<integer, Connector>
 function rods.find_in_line(config)
+    game.print("Finding in line... "..math.random())
     local source = config.source --[[@as LuaEntity]]
     local surface = source.surface
     local pos = source.position
-    local dx = math.sin(config.angle --[[@as number]])
-    local dy = math.cos(config.angle --[[@as number]])
+    local angle = config.angle --[[@as number]]
+    local dx = math.sin(angle)
+    local dy = math.cos(angle)
+    local x = pos.x
+    local y = pos.y
     local found = {}
+    local bounces = 0
     for i = 1, config.length --[[@as integer]] do
-        local position = {pos.x + dx * i, pos.y + dy * i}
+        x = x + dx
+        y = y + dy
+        local position = {x,y}
+        game.print("[gps="..position[1]..","..position[2].."] "..math.random())
         local entities = surface.find_entities_filtered{position=position, name=rods.connector_name}
-        if entities[1] then
-            found[i] = storage.connectors[entities[1].unit_number]
+        local entity = entities[1]
+        if entity then
+            if config.condition and config.condition(entity) then
+                break
+            end
+            local reflector = rods.owns_reflector(entity)
+            if reflector then
+                if bounces >= reflector.bounce_limit then
+                    break
+                end
+                game.print("reflecting...")
+                angle = angle + math.pi
+                dx = math.sin(angle)
+                dy = math.cos(angle)
+                config.length = math.min(config.length, reflector.reflection_distance + i)
+                bounces = bounces + 1
+            else
+                found[i] = storage.connectors[entities[1].unit_number]
+            end
+        else
+            break
         end
     end
     return found
@@ -392,14 +591,33 @@ function rods.get_moderation_from_moderators(moderators)
     return (1 - value)
 end
 
+---@param p1 MapPosition
+---@param p2 MapPosition
+---@return number
+local function distance_sqr(p1, p2)
+    return (p1.x - p2.x)^2+(p1.y - p2.y)^2
+end
+
 ---@param reactor Reactor
 function rods.create_affectors(reactor)
+    local function matches_reactor_filter(entity)
+        local owner_reactor = storage.connectors[entity.unit_number] --[[@as Connector]].owner.reactor
+        if not owner_reactor or owner_reactor ~= reactor then
+            return true
+        end
+    end
     for _, rod in pairs(reactor.fuel_rods) do
+        rod.base_fast_flux = 0
+        rod.base_slow_flux = 0
+        rod.base_efficiency = 1
+        rod.penalty_val = 1
         rod.affectors = {}
+        rod.basic_sources = {}
         for i = 1, 4 do
             local visited_moderators = {}
             local visited_control_rods = {}
-            local connectors = rods.find_in_line{source=rod.entity, angle=i * math.pi / 2, length=8}
+            local control_rod_count = 0
+            local connectors = rods.find_in_line{source=rod.entity, angle=i * math.pi / 2, length=rod.affectable_distance, condition=matches_reactor_filter}
             for _, connector in pairs(connectors) do
                 local owner = connector.owner
                 if not owner.reactor or owner.reactor ~= reactor then
@@ -409,9 +627,28 @@ function rods.create_affectors(reactor)
                     goto continue
                 end
                 if owner.type == "fuel" then
-                    table.insert(rod.affectors, {control_rods = rods.shallow_copy(visited_control_rods), fuel_rod=owner, moderation=rods.get_moderation_from_moderators(visited_moderators)} --[[@as Affector]])
+                    ---@cast owner FuelRod
+                    table.insert(rod.affectors, {control_rods = rods.shallow_copy(visited_control_rods), affector=owner, moderation=rods.get_moderation_from_moderators(visited_moderators)} --[[@as Affector]])
                 elseif owner.type == "control" then
+                    ---@cast owner ControlRod
+                    control_rod_count = control_rod_count + 1
                     table.insert(visited_control_rods, owner)
+                elseif owner.type == "source" then
+                    ---@cast owner Source
+                    if distance_sqr(connector.entity.position, rod.entity.position) <= (owner.range ^ 2) then
+                        if control_rod_count == 0 then
+                            local moderation = rods.get_moderation_from_moderators(visited_moderators)
+                            rod.base_slow_flux = rod.base_slow_flux + moderation * owner.fast_flux + owner.slow_flux
+                            rod.base_fast_flux = rod.base_fast_flux + owner.fast_flux * (1-moderation)
+                            rod.base_efficiency = rod.base_efficiency * owner.penalty
+                            table.insert(rod.basic_sources, owner)
+                        else
+                            table.insert(rod.affectors, {control_rods = rods.shallow_copy(visited_control_rods), affector=owner, moderation=rods.get_moderation_from_moderators(visited_moderators)})
+                        end
+                    end
+                elseif owner.type == "mod" then
+                    ---@cast owner Moderator
+                    table.insert(visited_moderators, owner)
                 end
                 ::continue::
             end
@@ -419,16 +656,36 @@ function rods.create_affectors(reactor)
     end
 end
 
+---@param rod FuelRod
+function rods.deactivate_fuel_rod(rod)
+    rod.power = 0
+    rod.efficiency = 1
+    rod.base_efficiency = 1
+    rod.penalty_val = 1
+    rod.interface.set_heat_setting{mode="add",temperature=0}
+    rod.slow_flux = 0
+    rod.fast_flux = 0
+    rod.in_slow_flux = 0
+    rod.in_fast_flux = 0
+end
+
 ---@param reactor Reactor
 function rods.destroy_reactor(reactor)
     for _, rod in pairs(reactor.fuel_rods) do
         rod.reactor = nil
+        rods.deactivate_fuel_rod(rod)
     end
     for _, rod in pairs(reactor.control_rods) do
         rod.reactor = nil
     end
     for _, source in pairs(reactor.sources) do
         source.reactor = nil
+    end
+    for _, moderator in pairs(reactor.moderators) do
+        moderator.reactor = nil
+    end
+    for _, reflector in pairs(reactor.reflectors) do
+        reflector.reactor = nil
     end
     for _, interface in pairs(reactor.inputs) do
         interface.reactor = nil
@@ -441,6 +698,26 @@ function rods.destroy_reactor(reactor)
     reactor.inputs = {}
     reactor.outputs = {}
     storage.reactors[reactor.id] = nil
+end
+
+---@param from_ent LuaEntity
+---@param to_ent LuaEntity
+function rods.on_paste(from_ent, to_ent)
+    -- TODO: FIX THIS
+    local from_id = script.register_on_object_destroyed(from_ent)
+    if not storage.rods[from_id] then
+        return
+    end
+    local to_id = script.register_on_object_destroyed(to_ent)
+    if not storage.rods[to_id] then
+        return
+    end
+    local from = storage.rods[from_id] --[[@as FuelRod]]
+    local to = storage.rods[to_id] --[[@as FuelRod]]
+    if from.type ~= "fuel" or to.type ~= "fuel" then
+        return
+    end
+    to.wants_fuel = from.wants_fuel
 end
 
 return rods
