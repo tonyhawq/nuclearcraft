@@ -4,6 +4,7 @@ Rods = require("__nuclearcraft__.scripts.rods")
 InterfaceGUI = require("__nuclearcraft__.scripts.interface-gui")
 RodGUI = require("__nuclearcraft__.scripts.rod-gui")
 ControlRodGUI = require("__nuclearcraft__.scripts.control-rod-gui")
+ControllerGUI = require("__nuclearcraft__.scripts.controller-gui")
 
 script.on_init(function()
     Rods.setup()
@@ -13,6 +14,7 @@ end)
 script.on_nth_tick(15, function (_)
     for _, player in pairs(game.connected_players) do
         RodGUI.update(player)
+        InterfaceGUI.update(player)
     end
 end)
 
@@ -41,59 +43,50 @@ script.on_event(defines.events.on_entity_settings_pasted, function(event)
     Rods.on_paste(event.source, event.destination)
 end)
 
+script.on_event(defines.events.on_gui_value_changed, function (event)
+    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+    RodGUI.value_changed(event, player)
+end)
+
+script.on_event(defines.events.on_gui_confirmed, function (event)
+    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+    RodGUI.on_gui_confirmed(event, player)
+    ControllerGUI.on_gui_confirmed(event, player)
+    InterfaceGUI.on_gui_confirmed(event, player)
+end)
+
 script.on_event(defines.events.on_gui_opened, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     local entity = event.entity --[[@as LuaEntity]]
     InterfaceGUI.open(player, entity)
     RodGUI.open(player, entity)
+    ControllerGUI.open(player, entity)
     ControlRodGUI.open(player, entity)
 end)
 
 script.on_event(defines.events.on_gui_closed, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.close(player)
-    RodGUI.close(player)
+    RodGUI.on_close(event, player)
+    ControllerGUI.on_close(event, player)
     ControlRodGUI.close(player)
+end)
+
+script.on_event(defines.events.on_gui_switch_state_changed, function(event)
+    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+    InterfaceGUI.on_gui_switch_state_changed(event, player)
+    RodGUI.on_gui_switch_state_changed(event, player)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.player_clicked_gui(event, player)
     RodGUI.player_clicked_gui(event, player)
+    ControllerGUI.player_clicked_gui(event, player)
 end)
 
 script.on_event(defines.events.on_gui_elem_changed, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     RodGUI.player_changed_elem(event, player)
-end)
-
-commands.add_command("power", "", function (event)
-    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
-    local gui = player.gui.relative[RodGUI.root]
-    if not gui then
-        return
-    end
-    local rod = storage.rods[gui.tags.id] --[[@as FuelRod]]
-    rod.power = tonumber(event.parameter) or 0
-    RodGUI.update(player)
-end)
-commands.add_command("slow", "", function (event)
-    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
-    local gui = player.gui.relative[RodGUI.root]
-    if not gui then
-        return
-    end
-    local rod = storage.rods[gui.tags.id] --[[@as FuelRod]]
-    rod.slow_flux = tonumber(event.parameter) or 0
-    RodGUI.update(player)
-end)
-commands.add_command("fast", "", function (event)
-    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
-    local gui = player.gui.relative[RodGUI.root]
-    if not gui then
-        return
-    end
-    local rod = storage.rods[gui.tags.id] --[[@as FuelRod]]
-    rod.fast_flux = tonumber(event.parameter) or 0
-    RodGUI.update(player)
+    InterfaceGUI.player_changed_elem(event, player)
 end)

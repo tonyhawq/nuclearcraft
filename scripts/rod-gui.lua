@@ -5,9 +5,33 @@ rod_gui.bar_width = 300
 rod_gui.bar_min_legible_width = 50
 rod_gui.bar_min_width = 20
 
+rod_gui.choose_signal_buttons = {
+    {"choose_signal_temperature", {"nuclearcraft.tooltip-temperature"}, "tsig"},
+    {"choose_signal_power", {"nuclearcraft.tooltip-power"}, "psig"},
+    {"choose_signal_efficiency", {"nuclearcraft.tooltip-efficiency"}, "esig"},
+    {"choose_signal_fuel", {"nuclearcraft.tooltip-fuel"}, "fsig"},
+    {"choose_signal_slow_flux", {"nuclearcraft.tooltip-slow"}, "sfsig"},
+    {"choose_signal_fast_flux", {"nuclearcraft.tooltip-fast"}, "ffsig"},
+    {"choose_signal_delta_flux", {"nuclearcraft.tooltip-delta"}, "dfsig"},
+}
+
+rod_gui.signal_button_count = #rod_gui.choose_signal_buttons
+
+---@param event EventData.on_gui_closed
+---@param player LuaPlayer
+function rod_gui.on_close(event, player)
+    if event.entity then
+        return
+    end
+    if not event.element or event.element.name ~= rod_gui.root then
+        return
+    end
+    rod_gui.close(player)
+end
+
 ---@param player LuaPlayer
 function rod_gui.close(player)
-    local gui = player.gui.relative[rod_gui.root]
+    local gui = player.gui.screen[rod_gui.root]
     if gui then gui.destroy() end
 end
 
@@ -18,22 +42,22 @@ function rod_gui.open(player, entity)
         return
     end
     rod_gui.close(player)
-    local gui = player.gui.relative
-    local anchor = {gui=defines.relative_gui_type.container_gui, position=defines.relative_gui_position.right}
+    local gui = player.gui.screen
+    local rod = storage.rods[script.register_on_object_destroyed(entity)]
     local container = gui.add{
         type = "frame",
         name=rod_gui.root,
-        anchor = anchor,
         direction = "vertical",
-        tags = {id = script.register_on_object_destroyed(entity)},
-        style = "inset_frame_container_frame"
+        tags = {id = rod.id},
+        style = "inset_frame_container_frame",
     }
+    container.auto_center = true
     local label_flow = container.add{
         name = "label-flow",
         type = "flow",
         direction = "horizontal",
     }
-    label_flow.style.bottom_padding = 4
+    label_flow.style.bottom_padding = 1
     label_flow.style.horizontally_stretchable = true
     label_flow.style.horizontal_spacing = 8
     local label = label_flow.add{
@@ -44,17 +68,132 @@ function rod_gui.open(player, entity)
     }
     label.style.top_margin = -3
     label.style.bottom_padding = 3
-    local inside_frame = container.add{
+    local widget = label_flow.add{
+        type = "empty-widget",
+        style = "draggable_space",
+    }
+    widget.drag_target = container
+    widget.style.height = 24
+    widget.style.horizontally_stretchable = true
+    local close_button = label_flow.add{
+        name = "fuel_rod_gui_close",
+        type = "sprite-button",
+        style = "close_button",
+    }
+    close_button.style.horizontal_align = "right"
+    close_button.sprite = "utility.close"
+    local inside_flow = container.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "flow",
+    }
+    local inside_frame = inside_flow.add{
         type = "frame",
         name = "frame",
         style = "entity_frame",
         direction = "vertical"
     }
+    local circuit_frame = inside_flow.add{
+        type = "frame",
+        name = "circuit_frame",
+        style = "entity_frame",
+        direction = "vertical",
+    }
+    local circuit_status_flow = circuit_frame.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "status_flow",
+    }
+    circuit_status_flow.add{
+        type = "sprite",
+        name = "status_led",
+        sprite = "utility.status_inactive"
+    }
+    circuit_status_flow.add{
+        type = "label",
+        name = "status_label",
+        style = "label",
+        caption = {"nuclearcraft.circuit-network-disabled"}
+    }
+    circuit_frame.add{
+        type = "label",
+        name = "circuit_network_label",
+        style = "semibold_label",
+        caption = {"nuclearcraft.enable-circuit-network"},
+    }
+    circuit_frame.add{
+        type = "switch",
+        name = "rod_gui_circuit_network_switch",
+        switch_state = "left",
+        left_label_caption = {"gui.off"},
+        right_label_caption = {"gui.on"},
+    }
+    circuit_frame.add{
+        type = "line",
+        style = "line",
+    }
+    circuit_frame.add{
+        type = "label",
+        style = "semibold_label",
+        caption = {"nuclearcraft.select-circuits"}
+    }
+    local slot_frame = circuit_frame.add{
+        type = "frame",
+        name = "slot_frame",
+        style = "subheader_frame",
+        direction = "vertical"
+    }
+    slot_frame.style.height = 90
+    local slot_flow = slot_frame.add{
+        type = "flow",
+        name = "slot_flow",
+        direction = "horizontal",
+    }
+    slot_flow.style.horizontal_spacing = 1
+    local spacer = slot_flow.add{
+        type = "empty-widget",
+    }
+    spacer.style.horizontally_stretchable = true
+    spacer.style.natural_width = 0
+    for i = 1, rod_gui.signal_button_count do
+        local button = slot_flow.add{
+            type = "choose-elem-button",
+            style = "slot_button",
+            elem_type = "signal",
+            name = rod_gui.choose_signal_buttons[i][1],
+            tooltip = rod_gui.choose_signal_buttons[i][2],
+            
+        }
+        button.elem_value = {name=rod[rod_gui.choose_signal_buttons[i][3]], type="virtual"} --[[@as SignalID]]
+        local info = slot_flow.add{
+            type = "sprite",
+            sprite = "info",
+            name = rod_gui.choose_signal_buttons[i][1].."-info",
+            tooltip = rod_gui.choose_signal_buttons[i][2]
+        }
+    end
+    local spacer2 = slot_flow.add{
+        type = "empty-widget",
+    }
+    spacer2.style.horizontally_stretchable = true
+    spacer2.style.natural_width = 0
+    slot_frame.add{
+        type = "line",
+        style = "line"
+    }
+    local circuit_confirm = slot_frame.add{
+        type = "button",
+        name = "reset_circuit_filters",
+        style = "red_button",
+        caption = {"nuclearcraft.reset-circuits"}
+    }
+    circuit_confirm.style.horizontally_stretchable = true
     local status_flow = inside_frame.add{
         type = "flow",
         direction = "horizontal",
         name = "status_flow",
     }
+    status_flow.style.horizontally_stretchable = true
     status_flow.add{
         type = "sprite",
         name = "status_led",
@@ -83,7 +222,8 @@ function rod_gui.open(player, entity)
         sprite = "item.uranium-fuel-cell",
         style = "inventory_slot",
     }
-    burning_fuel.enabled = false
+    burning_fuel.enabled = true
+    burning_fuel.number = 0
     local fuel_remaining = fuel_flow.add{
         type = "progressbar",
         style = "production_progressbar",
@@ -98,7 +238,18 @@ function rod_gui.open(player, entity)
         sprite = "item.depleted-uranium-fuel-cell",
         style = "inventory_slot"
     }
-    burnt_fuel.enabled = false
+    burnt_fuel.number = 0
+    burnt_fuel.enabled = true
+    local min_slider_flow = inside_frame.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "minimum_slider_flow",
+    }
+    local max_slider_flow = inside_frame.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "maximum_slider_flow",
+    }
     inside_frame.add{
         type = "line",
         style = "line",
@@ -256,16 +407,31 @@ function rod_gui.open(player, entity)
         style = "button",
         caption = {"nuclearcraft.visualize-flux"}
     }
+    container.flow.frame["minimum_slider_flow"].tags = {value = storage.rods[container.tags.id].wants_min or 0}
+    container.flow.frame["maximum_slider_flow"].tags = {value = storage.rods[container.tags.id].wants_max or 0}
+    rod_gui.create_slider_flow("min", container, 0, 5, container.flow.frame.maximum_slider_flow.tags.value --[[@as number]])
+    rod_gui.create_slider_flow("max", container, container.flow.frame.minimum_slider_flow.tags.value --[[@as number]], math.max(container.flow.frame.minimum_slider_flow.tags.value + 2 --[[@as number]], 5), container.flow.frame.minimum_slider_flow.tags.value --[[@as number]])
+    rod_gui.update_slider_textboxes(container)
+    player.opened = container
     rod_gui.update(player)
 end
 
 ---@param event EventData.on_gui_elem_changed
 ---@param player LuaPlayer
 function rod_gui.player_changed_elem(event, player)
-    local root = player.gui.relative[rod_gui.root]
+    local root = player.gui.screen[rod_gui.root]
     if not root or not root.tags or not root.tags.id then
         return
     end
+    local names_to_values = {
+        choose_signal_temperature = "tsig",
+        choose_signal_power = "psig",
+        choose_signal_efficiency = "esig",
+        choose_signal_fuel = "fsig",
+        choose_signal_fast_flux = "ffsig",
+        choose_signal_slow_flux = "sfsig",
+        choose_signal_delta_flux = "dfsig",
+    }
     if event.element.name == "fuel_selection" then
         if not event.element.elem_value then
             storage.rods[root.tags.id]--[[@as FuelRod]].wants_fuel = nil
@@ -273,20 +439,194 @@ function rod_gui.player_changed_elem(event, player)
         end
         local item_name = event.element.elem_value --[[@as string]]
         if not Formula.fuels[item_name] then
-            game.print("no fuel with name "..tostring(item_name))
+            player.play_sound{path="utility/cannot_build"}
+            player.create_local_flying_text{text={"nuclearcraft.not-a-fuel"}, create_at_cursor=true}
             event.element.elem_value = nil
             rod_gui.update(player)
             return
         end
-        storage.rods[root.tags.id]--[[@as FuelRod]].wants_fuel = item_name
+        local rod = storage.rods[root.tags.id]--[[@as FuelRod]]
+        Rods.set_fuel_request(rod, item_name)
         rod_gui.update(player)
+    elseif names_to_values[event.element.name] then
+        local rod = storage.rods[root.tags.id]--[[@as FuelRod]]
+        if event.element.elem_value == nil then
+            if rod_gui.signal_present(rod, Rods.default_signal[names_to_values[event.element.name]]) then
+                event.element.elem_value = rod[names_to_values[event.element.name]]
+                player.play_sound{path="utility/cannot_build"}
+                player.create_local_flying_text{text={"nuclearcraft.cannot-reset-signal-present"}, create_at_cursor=true}
+                return
+            end
+            event.element.elem_value = Rods.default_signal[names_to_values[event.element.name]]
+        end
+        if rod_gui.signal_present(rod, event.element.elem_value --[[@as SignalID]]) then
+            event.element.elem_value = rod[names_to_values[event.element.name]]
+            player.play_sound{path="utility/cannot_build"}
+            player.create_local_flying_text{text={"nuclearcraft.signal-present"}, create_at_cursor=true}
+            return
+        end
+        rod[names_to_values[event.element.name]] = event.element.elem_value.name
+        rod_gui.update(player)
+    end
+end
+
+---@param as "min"|"max"
+---@param root LuaGuiElement
+---@param minimum number
+---@param maximum number
+---@param value number?
+---@param step_size number?
+function rod_gui.create_slider_flow(as, root, minimum, maximum, value, step_size)
+    root.flow.frame[as.."imum_slider_flow"].add{
+        type = "label",
+        name = "slider-"..as.."-label",
+        style = "semibold_label",
+        caption = {"nuclearcraft."..as},
+    }
+    root.flow.frame[as.."imum_slider_flow"].add{
+        type = "slider",
+        name = as.."imum_fuel_request_slider",
+        minimum_value = minimum,
+        maximum_value = maximum,
+        value = value,
+        value_step = step_size,
+    }
+    root.flow.frame[as.."imum_slider_flow"].add{
+        type = "textfield",
+        name = as.."imum_fuel_request_slider_textbox",
+        style = "slider_value_textfield",
+        lose_focus_on_confirm = true,
+    }
+    if as == "max" then
+        root.flow.frame[as.."imum_slider_flow"].add{            
+            type = "button",
+            name = "set_fuel_sliders_button",
+            style = "green_button",
+            caption = {"nuclearcraft.confirm"},
+        }
+    else
+        root.flow.frame[as.."imum_slider_flow"].add{
+            type = "button",
+            name = "reset_sliders_button",
+            caption = {"nuclearcraft.reset-sliders"},
+        }
+    end
+end
+
+function rod_gui.update_slider_textboxes(root)
+    root.flow.frame.minimum_slider_flow.minimum_fuel_request_slider_textbox.text = tostring(root.flow.frame.minimum_slider_flow.tags.value)
+    root.flow.frame.maximum_slider_flow.maximum_fuel_request_slider_textbox.text = tostring(root.flow.frame.maximum_slider_flow.tags.value)
+end
+
+function rod_gui.update_minimum_slider(root)
+    local value = root.flow.frame.minimum_slider_flow.tags.value
+    local max_slider = root.flow.frame.maximum_slider_flow.maximum_fuel_request_slider --[[@as LuaGuiElement]]
+    if value >= max_slider.get_slider_minimum() then
+        local max_value = max_slider.get_slider_maximum()
+        if value >= (max_value - 1) then
+            max_value = value + 2
+        end
+        local tag_value = root.flow.frame.maximum_slider_flow.tags.value
+        if value > root.flow.frame.maximum_slider_flow.tags.value then
+            tag_value = value
+        end
+        root.flow.frame.maximum_slider_flow.clear()
+        rod_gui.create_slider_flow("max", root, value, max_value, tag_value)
+        root.flow.frame.maximum_slider_flow.tags = {value=tag_value}
+    elseif value < max_slider.get_slider_minimum() then
+        if value > 0 then
+            local max_slider_slider_value = root.flow.frame.maximum_slider_flow.tags.value
+            local max_slider_slider_maximum = max_slider.get_slider_maximum()
+            root.flow.frame.maximum_slider_flow.clear()
+            rod_gui.create_slider_flow("max", root, value, max_slider_slider_maximum, max_slider_slider_value)
+        end
+    end
+end
+
+---@param event EventData.on_gui_value_changed
+---@param player LuaPlayer
+function rod_gui.value_changed(event, player)
+    local root = player.gui.screen[rod_gui.root]
+    if not root or not root.tags or not root.tags.id then
+        return
+    end
+    if event.element.name == "minimum_fuel_request_slider" then
+        root.flow.frame.minimum_slider_flow.tags = {value=event.element.slider_value}
+        rod_gui.update_minimum_slider(root)
+        rod_gui.update_slider_textboxes(root)
+    elseif event.element.name == "maximum_fuel_request_slider" then
+        root.flow.frame.maximum_slider_flow.tags = {value=event.element.slider_value}
+        rod_gui.update_slider_textboxes(root)
+    end
+end
+
+---@param event EventData.on_gui_confirmed
+---@param player LuaPlayer
+function rod_gui.on_gui_confirmed(event, player)
+    local root = player.gui.screen[rod_gui.root]
+    if not root or not root.tags or not root.tags.id then
+        return
+    end
+    if event.element.name == "minimum_fuel_request_slider_textbox" then
+        if not tonumber(event.element.text) then
+            return
+        end
+        local num = math.floor(tonumber(event.element.text) --[[@as number]])
+        local min_slider = root.flow.frame.minimum_slider_flow.minimum_fuel_request_slider --[[@as LuaGuiElement]]
+        local min_slider_min = min_slider.get_slider_minimum()
+        local min_slider_max = min_slider.get_slider_maximum()
+        root.flow.frame.minimum_slider_flow.tags = {value=math.max(num, 0)}
+        if num > min_slider.get_slider_maximum() then
+            rod_gui.update_minimum_slider(root)
+            root.flow.frame.minimum_slider_flow.clear()
+            rod_gui.create_slider_flow("min", root, 0, min_slider_max, min_slider_max)
+            rod_gui.update_slider_textboxes(root)
+        elseif num < 0 then
+            num = 0
+            min_slider.slider_value = 0
+            rod_gui.update_minimum_slider(root)
+            root.flow.frame.minimum_slider_flow.clear()
+            rod_gui.create_slider_flow("min", root, 0, 5, 0)
+        else
+            min_slider.slider_value = num
+            local min_min = min_slider.get_slider_minimum()
+            local min_max = min_slider.get_slider_maximum()
+            rod_gui.update_minimum_slider(root)
+            root.flow.frame.minimum_slider_flow.clear()
+            rod_gui.create_slider_flow("min", root, min_min, min_max, num)
+            rod_gui.update_slider_textboxes(root)
+        end
+    elseif event.element.name == "maximum_fuel_request_slider_textbox" then
+        if not tonumber(event.element.text) then
+            return
+        end
+        local num = math.max(math.floor(tonumber(event.element.text) --[[@as number]]), 0)
+        local max_slider = root.flow.frame.maximum_slider_flow.maximum_fuel_request_slider --[[@as LuaGuiElement]]
+        local max_slider_min = max_slider.get_slider_minimum()
+        local max_slider_max = max_slider.get_slider_maximum()
+        if num > max_slider.get_slider_maximum() then
+            root.flow.frame.maximum_slider_flow.clear()
+            root.flow.frame.maximum_slider_flow.tags = {value=num}
+            rod_gui.create_slider_flow("max", root, max_slider_min, num, num)
+            rod_gui.update_slider_textboxes(root)
+        elseif num < max_slider.get_slider_minimum() then
+            root.flow.frame.maximum_slider_flow.clear()
+            root.flow.frame.maximum_slider_flow.tags = {value=max_slider_min}
+            rod_gui.create_slider_flow("max", root, max_slider_min, max_slider_max, max_slider_min)
+            rod_gui.update_slider_textboxes(root)
+        else
+            root.flow.frame.maximum_slider_flow.clear()
+            root.flow.frame.maximum_slider_flow.tags = {value=num}
+            rod_gui.create_slider_flow("max", root, max_slider_min, max_slider_max, num)
+            rod_gui.update_slider_textboxes(root)
+        end
     end
 end
 
 ---@param event EventData.on_gui_click
 ---@param player LuaPlayer
 function rod_gui.player_clicked_gui(event, player)
-    local root = player.gui.relative[rod_gui.root]
+    local root = player.gui.screen[rod_gui.root]
     if not root or not root.tags or not root.tags.id then
         return
     end
@@ -303,6 +643,14 @@ function rod_gui.player_clicked_gui(event, player)
                 rendering.draw_line{from={affector.affector.entity.position.x + coffset / 32, affector.affector.entity.position.y + coffset / 32}, to=control_rod.entity.position, surface=affector.affector.entity.surface, color={0, 255, 0}, width=1}
             end
         end
+    elseif event.element.name == "reset_circuit_filters" then
+        local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
+        local slot_flow = root.flow.circuit_frame.slot_frame.slot_flow
+        for i = 1, rod_gui.signal_button_count do
+            local name = rod_gui.choose_signal_buttons[i][1]
+            slot_flow[name].elem_value = Rods.default_signal[rod_gui.choose_signal_buttons[i][3]]
+            rod[rod_gui.choose_signal_buttons[i][3]] = slot_flow[name].elem_value.name
+        end
     elseif event.element.name == "visualize_flux" then
         local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
         local reactor = rod.reactor
@@ -311,6 +659,67 @@ function rod_gui.player_clicked_gui(event, player)
             return
         end
         reactor.visualize = true
+    elseif event.element.name == "set_fuel_sliders_button" then
+        local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
+        Rods.set_fuel_request(rod, rod.wants_fuel, root.flow.frame.minimum_slider_flow.tags.value, root.flow.frame.maximum_slider_flow.tags.value)
+        rod_gui.update(player)
+    elseif event.element.name == "reset_sliders_button" then
+        root.flow.frame.minimum_slider_flow.clear()
+        root.flow.frame.maximum_slider_flow.clear()
+        root.flow.frame.minimum_slider_flow.tags = {value=0}
+        root.flow.frame.maximum_slider_flow.tags = {value=0}
+        rod_gui.create_slider_flow("min", root, 0, 5, 0)
+        rod_gui.create_slider_flow("max", root, 0, 5, 0)
+        rod_gui.update_slider_textboxes(root)
+        local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
+        Rods.set_fuel_request(rod, rod.wants_fuel, 0, 0)
+        rod_gui.update(player)
+    elseif event.element.name == "burning_fuel" then
+        local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
+        local fuel = rod.fuel
+        if not fuel then
+            if not player.is_cursor_empty() then
+                local cursor_stack = player.cursor_stack
+                if cursor_stack and cursor_stack.name and cursor_stack.name == rod.wants_fuel then
+                    local memo = Formula.fuels[rod.wants_fuel]
+                    rod.fuel = {
+                        item = rod.wants_fuel,
+                        burnt_item = memo.burnt_item,
+                        character_name = memo.character_name,
+                        fuel_remaining = memo.fuel_remaining,
+                        total_fuel = memo.total_fuel,
+                        buffered = cursor_stack.count - 1,
+                        buffered_out = 0,
+                    }
+                    cursor_stack.clear()
+                    rod_gui.update(player)
+                end
+            end
+            return
+        end
+        if not player.is_cursor_empty() then
+            local cursor_stack = player.cursor_stack
+            if cursor_stack and cursor_stack.name and cursor_stack.name == fuel.item then
+                fuel.buffered = fuel.buffered + cursor_stack.count
+                player.cursor_stack.clear()
+                rod_gui.update(player)
+            end
+            return
+        end
+        if fuel.buffered == 0 then
+            return
+        end
+        local item_prototype = prototypes.item[fuel.item]
+        local to_remove = math.min(item_prototype.stack_size, fuel.buffered)
+        if to_remove == 0 then
+            return
+        end
+        player.cursor_stack.set_stack{name=fuel.item, count=to_remove}
+        fuel.buffered = fuel.buffered - to_remove
+        rod_gui.update(player)
+    elseif event.element.name == "fuel_rod_gui_close" then
+        rod_gui.close(player)
+        return
     end
 end
 
@@ -331,17 +740,44 @@ end
 
 ---@param player LuaPlayer
 function rod_gui.update(player)
-    local root = player.gui.relative[rod_gui.root] --[[@as LuaGuiElement]]
+    local root = player.gui.screen[rod_gui.root] --[[@as LuaGuiElement]]
     if not root or not root.tags or not root.tags.id or not storage.rods[root.tags.id] then
         return
     end
     local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
-    local status = root.frame.status_flow
+    local status = root.flow.frame.status_flow
     local fuel = rod.fuel
-    local fuel_flow = root.frame.fuel
+    local circuit_frame = root.flow.circuit_frame
+    local circuit_status_flow = circuit_frame.status_flow
+    local slot_flow = circuit_frame.slot_frame.slot_flow
+    if rod.networked then
+        circuit_frame.rod_gui_circuit_network_switch.switch_state = "right"
+        if not slot_flow[rod_gui.choose_signal_buttons[1][1]].enabled then
+            for i = 1, rod_gui.signal_button_count do
+                slot_flow[rod_gui.choose_signal_buttons[i][1]].enabled = true
+            end
+        end
+        if rod.reactor then
+            circuit_status_flow.status_led.sprite = "utility.status_working"
+            circuit_status_flow.status_label.caption = {"nuclearcraft.working"}
+        else
+            circuit_status_flow.status_led.sprite = "utility.status_yellow"
+            circuit_status_flow.status_label.caption = {"nuclearcraft.no-reactor"}
+        end
+    else
+        circuit_status_flow.status_led.sprite = "utility.status_inactive"
+        circuit_status_flow.status_label.caption = {"nuclearcraft.circuit-network-disabled"}
+        circuit_frame.rod_gui_circuit_network_switch.switch_state = "left"
+        if slot_flow[rod_gui.choose_signal_buttons[1][1]].enabled then
+            for i = 1, rod_gui.signal_button_count do
+                slot_flow[rod_gui.choose_signal_buttons[i][1]].enabled = false
+            end
+        end
+    end
+    local fuel_flow = root.flow.frame.fuel
     local character
-    local inside_frame = root.frame
-    local temperature_bar = root.frame.temperature
+    local inside_frame = root.flow.frame
+    local temperature_bar = root.flow.frame.temperature
     local temperature = rod.interface.temperature --[[@as number]]
     temperature_bar.value = temperature / Rods.meltdown_temperature
     temperature_bar.caption = {"nuclearcraft.number-unit", tostring(math.ceil(temperature)),"c"}
@@ -354,20 +790,27 @@ function rod_gui.update(player)
         character = Formula.characteristics[fuel.character_name]
         fuel_flow.burning_fuel.sprite = "item."..fuel.item
         fuel_flow.burnt_fuel.sprite = "item."..fuel.burnt_item
+        fuel_flow.burning_fuel.number = fuel.buffered
+        fuel_flow.burnt_fuel.number = fuel.buffered_out
         inside_frame.efficiency.value = rod.efficiency / character.max_efficiency
         inside_frame.efficiency_penalty.value = 1 - rod.penalty_val
         if not rod.wants_fuel then
             fuel_flow.fuel_selection.elem_value = nil
         else
-            fuel_flow.fuel_selection.elem_value = fuel.item
+            fuel_flow.fuel_selection.elem_value = rod.wants_fuel
         end
     else
         if rod.wants_fuel then
             inside_frame.efficiency.value = 0
             inside_frame.efficiency_penalty.value = 1 - rod.base_efficiency
-            fuel_flow.fuel_remaining.caption = {"nuclearcraft.no-fuel"}
-            status.status_led.sprite = "utility.status_inactive"
-            status.status_label.caption = {"nuclearcraft.no-fuel"}
+            status.status_led.sprite = "utility.status_not_working"
+            if rod.wants_min == 0 then
+                fuel_flow.fuel_remaining.caption = {"nuclearcraft.no-fuel-requested"}
+                status.status_label.caption = {"nuclearcraft.no-fuel-requested"}
+            else
+                fuel_flow.fuel_remaining.caption = {"nuclearcraft.no-fuel"}
+                status.status_label.caption = {"nuclearcraft.no-fuel"}    
+            end
             fuel_flow.burning_fuel.sprite = "item."..rod.wants_fuel
             fuel_flow.burnt_fuel.sprite = nil
             fuel_flow.fuel_selection.elem_value = rod.wants_fuel
@@ -375,7 +818,7 @@ function rod_gui.update(player)
         else
             inside_frame.efficiency.value = 0
             inside_frame.efficiency_penalty.value = 1 - rod.base_efficiency
-            status.status_led.sprite = "utility.status_inactive"
+            status.status_led.sprite = "utility.status_not_working"
             status.status_label.caption = {"nuclearcraft.no-fuel-selected"}
             fuel_flow.burning_fuel.sprite = nil
             fuel_flow.burnt_fuel.sprite = nil
@@ -393,29 +836,29 @@ function rod_gui.update(player)
             target_fast +
             target_slow, 1)
         )
-        root.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "nF", string.format("%.3f", target_fast + target_slow), "nF"}
+        root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "nF", string.format("%.3f", target_fast + target_slow), "nF"}
         flux_percentage_out = (rod.slow_flux + rod.fast_flux) / (character.max_slow_flux + character.max_fast_flux)
     else
 
     end
     rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
     rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
-    root.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "nF"}
+    root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "nF"}
     if rod.power > 0 then
-        root.frame.power.value = rod.power / (character or {max_power = 40}).max_power
-        root.frame.burnup.value = rod.power / rod.efficiency / rod.power
+        root.flow.frame.power.value = rod.power / (character or {max_power = 40}).max_power
+        root.flow.frame.burnup.value = rod.power / rod.efficiency / rod.power
         local power, power_unit = select_unit(rod.power * 1000000)
         local burnup, burnup_unit = select_unit(rod.power / rod.efficiency * 1000000)
-        root.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power), power_unit}
-        root.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
+        root.flow.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power), power_unit}
+        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
     else
-        root.frame.power.value = 0
-        root.frame.power.caption = {"nuclearcraft.power-production"}
-        root.frame.burnup.value = 0
-        root.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
+        root.flow.frame.power.value = 0
+        root.flow.frame.power.caption = {"nuclearcraft.power-production"}
+        root.flow.frame.burnup.value = 0
+        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
     end
     if not rod.reactor then
-        status.status_led.sprite = "utility.status_not_working"
+        status.status_led.sprite = "utility.status_inactive"
         status.status_label.caption = {"nuclearcraft.no-reactor"}
     end
 end
@@ -427,7 +870,7 @@ end
 function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
     local minibar_width = rod_gui.bar_width
     local min_width = rod_gui.bar_min_width
-    local flux_root = root.frame["flux_"..mode.."put"]
+    local flux_root = root.flow.frame["flux_"..mode.."put"]
     local in_flux = flux_root.fast_slow
     local real_flux_percentage = 1
     local slow_flux
@@ -486,8 +929,8 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
         end
     else
         if rod.fuel and mode == "in" then
-            root.frame.status_flow.status_led.sprite = "utility.status_yellow"
-            root.frame.status_flow.status_label.caption = {"nuclearcraft.no-flux-input"}
+            root.flow.frame.status_flow.status_led.sprite = "utility.status_yellow"
+            root.flow.frame.status_flow.status_label.caption = {"nuclearcraft.no-flux-input"}
         end
         in_flux.fast.value = 0
         in_flux.slow.value = 0
@@ -496,6 +939,46 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
         in_flux.fast.style.width = minibar_width / 2
         in_flux.slow.style.width = minibar_width / 2
     end
+end
+
+---@param event EventData.on_gui_switch_state_changed
+---@param player any
+function rod_gui.on_gui_switch_state_changed(event, player)
+    local root = player.gui.screen[rod_gui.root]
+    if not root or not root.tags or not root.tags.id then
+        return
+    end
+    if event.element.name == "rod_gui_circuit_network_switch" then
+        if event.element.switch_state == "left" then
+            local slot_flow = root.flow.circuit_frame.slot_frame.slot_flow
+            for i = 1, rod_gui.signal_button_count do
+                local button = slot_flow[rod_gui.choose_signal_buttons[i][1]]
+                button.enabled = false
+            end
+            storage.rods[root.tags.id]--[[@as FuelRod]].networked = false
+            rod_gui.update(player)
+        else
+            local slot_flow = root.flow.circuit_frame.slot_frame.slot_flow
+            for i = 1, rod_gui.signal_button_count do
+                local button = slot_flow[rod_gui.choose_signal_buttons[i][1]]
+                button.enabled = true
+            end
+            storage.rods[root.tags.id]--[[@as FuelRod]].networked = true
+            rod_gui.update(player)
+        end
+    end
+end
+
+---@param rod FuelRod
+---@param value SignalID
+function rod_gui.signal_present(rod, value)
+    return rod.tsig == value.name or
+    rod.psig.name == value.name or
+    rod.esig.name == value.name or
+    rod.fsig.name == value.name or
+    rod.ffsig.name == value.name or
+    rod.sfsig.name == value.name or
+    rod.dfsig.name == value.name
 end
 
 return rod_gui

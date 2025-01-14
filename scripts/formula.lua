@@ -35,8 +35,31 @@ formula.fuels = {
         burnt_item = "depleted-uranium-fuel-cell",
         character_name = "uranium",
         fuel_remaining = 8000,
-        total_fuel = 8000
-    } --[[@as Fuel]]
+        total_fuel = 8000,
+        buffered = 0,
+        buffered_out = 0,
+    } --[[@as Fuel]],
+    ["copper-cable"] = {
+        item = "copper-cable",
+        burnt_item = "copper-plate",
+        character_name = "uranium",
+        fuel_remaining = 8000,
+        total_fuel = 8000,
+        buffered = 0,
+        buffered_out = 0,
+    } --[[@as Fuel]],
+}
+
+---@type table<string, BurntFuel>
+formula.burnt_items = {
+    ["depleted-uranium-fuel-cell"] = {
+        item = "depleted-uranium-fuel-cell",
+        from = {"uranium-fuel-cell"},
+    },
+    ["copper-plate"] = {
+        item = "copper-plate",
+        from = {"copper-cable"},
+    }
 }
 
 return formula

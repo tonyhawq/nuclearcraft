@@ -1,4 +1,5 @@
-local fuel_rod = table.deepcopy(data.raw.container["steel-chest"])
+local fuel_rod = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"])
+local reactor_controller = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"])
 local control_rod = table.deepcopy(data.raw.container["steel-chest"])
 local moderator_rod = table.deepcopy(data.raw.container["steel-chest"])
 local heat_interface = table.deepcopy(data.raw["heat-interface"]["heat-interface"])
@@ -18,6 +19,7 @@ local function apply_flags(thing)
     thing.flags = flags
     thing.selectable_in_game = false
     thing.hidden = true
+    thing.collision_mask = {layers={}}
 end
 
 local function make_composite(thing)
@@ -34,6 +36,7 @@ local function make_composite(thing)
 end
 circuit_interface.name = "nc-circuit-interface"
 circuit_interface.sprites = nil
+heat_interface.collision_box = {{-0.5, -0.5}, {0.5, 0.5}}
 heat_interface.name = "nc-fuel-rod-heat"
 heat_interface.heat_buffer.specific_heat = "1MJ"
 heat_interface.heat_buffer.max_temperature = 3000
@@ -41,8 +44,13 @@ heat_interface.heat_buffer.min_temperature_gradient = 1
 heat_pipe.name = "nc-heat-pipe"
 heat_pipe.heat_buffer.max_temperature = 3000
 fuel_rod.name = "fuel-rod"
+fuel_rod.picture = table.deepcopy(data.raw.container["steel-chest"].picture) ---@diagnostic disable-line
 fuel_rod.picture.layers[1].tint = {255, 255, 0}
-fuel_rod.minable.result = "fuel-rod"
+fuel_rod.minable = {result = "fuel-rod", mining_time=0.1}
+reactor_controller.name = "reactor-controller"
+reactor_controller.picture = table.deepcopy(data.raw.container["steel-chest"].picture) ---@diagnostic disable-line
+reactor_controller.picture.layers[1].tint = {255, 255, 0}
+reactor_controller.minable = {result = "reactor-controller", mining_time=0.1}
 control_rod.name = "control-rod"
 control_rod.picture.layers[1].tint = {0, 255, 0}
 control_rod.minable.result = "control-rod"
@@ -143,6 +151,20 @@ data:extend({
         order = "a",
         stack_size = 50,
     },
+    {
+        type = "item",
+        name = "reactor-controller",
+        icons = {
+            {
+                icon = "__base__/graphics/icons/iron-chest.png",
+                tint = {0, 0, 255}
+            }
+        },
+        place_result = "reactor-controller",
+        subgroup = "production-machine",
+        order = "a",
+        stack_size = 50,
+    },
 })
 apply_flags(heat_interface)
 apply_flags(heat_pipe)
@@ -154,7 +176,8 @@ make_composite(moderator_rod)
 make_composite(source_rod)
 make_composite(reflector_rod)
 make_composite(interface)
-data:extend({fuel_rod, control_rod, moderator_rod, reflector_rod, source_rod, interface, heat_interface, heat_pipe, connector, circuit_interface})
+make_composite(reactor_controller)
+data:extend({fuel_rod, control_rod, reactor_controller, moderator_rod, reflector_rod, source_rod, interface, heat_interface, heat_pipe, connector, circuit_interface})
 
 
 require("prototypes.signal")

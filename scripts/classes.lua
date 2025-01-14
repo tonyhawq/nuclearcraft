@@ -16,7 +16,7 @@
 
 ---@class (exact) Connector
 ---@field entity LuaEntity
----@field owner ControlRod|FuelRod|Interface|Source|Reflector|Moderator
+---@field owner ControlRod|FuelRod|Interface|Source|Reflector|Moderator|Controller
 
 ---@class (exact) Affector
 ---@field control_rods ControlRod[]
@@ -29,9 +29,17 @@
 ---@field character_name string
 ---@field fuel_remaining number
 ---@field total_fuel number
+---@field buffered number
+---@field buffered_out number
+
+---@class (exact) BurntFuel
+---@field from string[]
+---@field item string
 
 ---@class (exact) FuelRod
 ---@field wants_fuel string?
+---@field wants_min number?
+---@field wants_max number?
 ---@field type "fuel"
 ---@field fuel Fuel?
 ---@field affectors Affector[]
@@ -45,7 +53,6 @@
 ---@field efficiency number
 ---@field penalty_val number
 ---@field unpenalized number
----@field interface LuaEntity?
 ---@field entity LuaEntity
 ---@field connector LuaEntity
 ---@field reactor Reactor?
@@ -54,9 +61,27 @@
 ---@field base_efficiency number
 ---@field basic_sources Source[]
 ---@field affectable_distance number
----@field circuit LuaEntity?
+---@field interface LuaEntity?
 ---@field csection LuaLogisticSection?
 ---@field delta_flux number
+---@field requested boolean
+---@field requested_waste boolean
+---@field tsig SignalID
+---@field psig SignalID
+---@field esig SignalID
+---@field fsig SignalID
+---@field sfsig SignalID
+---@field ffsig SignalID
+---@field dfsig SignalID
+---@field networked boolean
+
+---@class (exact) Controller
+---@field type "controller"
+---@field connector LuaEntity?
+---@field reactor Reactor?
+---@field id number
+---@field entity LuaEntity
+---@field group number?
 
 ---@class (exact) ControlRod
 ---@field type "control"
@@ -68,6 +93,7 @@
 ---@field id integer
 ---@field circuit LuaEntity?
 ---@field csection LuaLogisticSection?
+---@field group number?
 
 ---@class (exact) Moderator
 ---@field type "mod"
@@ -102,10 +128,25 @@
 ---@class (exact) Interface
 ---@field type "interface"
 ---@field input boolean
+---@field output boolean
 ---@field entity LuaEntity
 ---@field connector LuaEntity
 ---@field reactor Reactor?
+---@field output_item string?
+---@field group number?
+---@field controller boolean
+---@field gsig SignalID
 ---@field id integer
+
+---@class (exact) ProviderFuel
+---@field from Interface
+---@field count number
+---@field inventory LuaInventory
+
+---@class (exact) DumpFuel
+---@field from Interface
+---@field count number
+---@field inventory LuaInventory
 
 ---@class (exact) Reactor
 ---@field fuel_rods FuelRod[]
@@ -118,5 +159,12 @@
 ---@field outputs Interface[]
 ---@field inputs Interface[]
 ---@field visualize boolean?
----@field need_fuel FuelRod[]
 ---@field have_spent FuelRod[]
+---@field fuels table<string, ProviderFuel>
+---@field need_fuel number
+---@field need_waste number
+---@field dumps table<string, DumpFuel>
+---@field insertions number[]
+---@field interfaces Interface[]
+---@field controllers Interface[]
+---@field group_controllers boolean
