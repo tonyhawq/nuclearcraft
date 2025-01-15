@@ -9,6 +9,11 @@ rods.heat_interface_capacity = 1
 rods.meltdown_temperature = 2500
 local heat_interface_capacity = rods.heat_interface_capacity
 
+local function first(tabl)
+    local _, v = next(tabl)
+    return v
+end
+
 rods.default_signal = {
     temperature = {type="virtual", name="signal-temp",quality="normal"},
     power = {type="virtual", name="signal-kW",quality="normal"},
@@ -27,6 +32,13 @@ rods.default_signal.sfsig = rods.default_signal.slow_flux
 rods.default_signal.ffsig = rods.default_signal.fast_flux
 rods.default_signal.dfsig = rods.default_signal.delta_flux
 rods.default_signal.gsig = rods.default_signal.group_controller
+
+rods.restricted_signal = {
+    ["signal-everything"] = "signal-everything",
+    ["signal-any"] = "signal-any",
+    ["signal-each"] = "signal-each",
+    
+}
 
 function rods.setup()
     storage.rods = storage.rods or {} --[[@as table<FuelRod>]]
@@ -102,17 +114,51 @@ function rods.on_fuel_rod_built(entity)
         delta_flux = 0,
         requested = false,
         requested_waste = false,
-        tsig = Rods.default_signa.tsig,
-        psig = Rods.default_signa.psig,
-        esig = Rods.default_signa.esig,
-        fsig = Rods.default_signa.fsig,
-        sfsig = Rods.default_signa.sfsig,
-        ffsig = Rods.default_signa.ffsig,
-        dfsig = Rods.default_signa.dfsig,
+        tsig = Rods.default_signal.tsig,
+        psig = Rods.default_signal.psig,
+        esig = Rods.default_signal.esig,
+        fsig = Rods.default_signal.fsig,
+        sfsig = Rods.default_signal.sfsig,
+        ffsig = Rods.default_signal.ffsig,
+        dfsig = Rods.default_signal.dfsig,
         networked = false,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
     rods.create_connector(connector, fuel_rod)
+end
+
+---@param interface Interface
+---@param group number
+---@return boolean
+function rods.group_id_in_use(interface, group)
+    local reactor = interface.reactor
+    if not reactor then
+        return false
+    end
+    if reactor.insertions[group] then
+        local last_value = reactor.insertions[group].owners[interface.id]
+        reactor.insertions[group].owners[interface.id] = nil
+        if first(reactor.insertions[group].owners) then
+            reactor.insertions[group].owners[interface.id] = last_value
+            return true
+        end
+        reactor.insertions[group].owners[interface.id] = last_value
+        return false
+    end
+    return false
+end
+
+---@param reactor Reactor
+---@param group number
+---@return boolean
+function rods.group_id_exists(reactor, group)
+    if not reactor then
+        return false
+    end
+    if reactor.insertions[group] then
+        return true
+    end
+    return false
 end
 
 ---@param entity LuaEntity
@@ -138,6 +184,7 @@ function rods.on_control_rod_built(entity)
         reactor = nil,
         id = id,
         group = nil,
+        useg = false,
     } --[[@as ControlRod]]
     storage.rods[id] = control_rod
     rods.create_connector(connector, control_rod)
@@ -159,7 +206,8 @@ function rods.on_interface_built(entity)
         reactor = nil,
         id = id,
         controller = false,
-        gsig = Rods.default_signal.gsig
+        gsig = Rods.default_signal.gsig,
+        insertion = 0,
     } --[[@as Interface]]
     storage.interfaces[id] = interface
     rods.create_connector(connector, interface)
@@ -276,6 +324,7 @@ function rods.on_destroyed(event)
         if reflector.heat_pipe and reflector.heat_pipe.valid then
             reflector.heat_pipe.destroy()
         end
+        storage.reflectors[id] = nil
     elseif storage.moderators[id] then
         local moderator = storage.moderators[id] --[[@as Moderator]]
         if moderator.reactor then
@@ -287,6 +336,7 @@ function rods.on_destroyed(event)
         if moderator.heat_pipe and moderator.heat_pipe.valid then
             moderator.heat_pipe.destroy()
         end
+        storage.moderators[id] = nil
     elseif storage.interfaces[id] then
         local interface = storage.interfaces[id] --[[@as Interface]]
         if interface.reactor then
@@ -295,6 +345,7 @@ function rods.on_destroyed(event)
         if interface.connector and interface.connector.valid then
             interface.connector.destroy()
         end
+        storage.interfaces[id] = nil
     end
 end
 
@@ -308,11 +359,6 @@ function rods.get_neighbors(entity)
     return {north, south, east, west}
 end
 
-local function first(tabl)
-    local _, v = next(tabl)
-    return v
-end
-
 ---@return number
 function rods.new_reactor_id()
     storage.last_reactor_id = storage.last_reactor_id + 1
@@ -321,8 +367,13 @@ end
 
 ---@param rod ControlRod
 function rods.update_control_rod(rod)
-    if rod.group then
-        rod.insertion = rod.reactor.insertions[rod.group] or 0
+    if rod.useg and rod.group then
+        local group = rod.reactor.insertions[rod.group]
+        if not group then
+            rod.insertion = 0
+            return
+        end
+        rod.insertion = group.val
         return
     end
     local target = rod.entity.get_signal({type="virtual", name="signal-S"}, defines.wire_connector_id.circuit_green)
@@ -458,6 +509,14 @@ local function pause_rod(rod)
     rod.efficiency = 0
     rod.power = 0
     rod.interface.set_heat_setting{mode="add", temperature=0}
+end
+
+---@param rod FuelRod
+---@param sig string
+---@param value SignalID
+function rods.set_signal(rod, sig, value)
+    value.quality = "normal"
+    rod[sig] = value
 end
 
 ---@param rod FuelRod
@@ -637,8 +696,14 @@ function rods.update_reactor(reactor)
     if reactor.need_fuel > 0 and first(reactor.inputs) then
         rods.get_available_fuels(reactor)
     end
-    if reactor.need_waste > 0 and first(reactor.outputs) then 
+    if reactor.need_waste > 0 and first(reactor.outputs) then
         rods.get_available_dumps(reactor)
+    end
+    if reactor.group_controllers then
+        for _, controller in pairs(reactor.controllers) do
+            controller.insertion = controller.entity.get_signal(controller.gsig, defines.wire_connector_id.circuit_green)
+            reactor.insertions[controller.group].val = math.min(math.max(controller.insertion / 1000, 0), 1)
+        end
     end
     for _, rod in pairs(reactor.fuel_rods) do
         rods.update_fuel_rod(rod)
@@ -667,9 +732,10 @@ rods.add_connector_to_reactor = {
         elseif interface.output then
             reactor.outputs[interface.id] = interface
         end
-        if interface.controller then
+        if interface.controller and interface.group then
             reactor.controllers[interface.id] = interface
             reactor.group_controllers = true
+            Rods.set_interface_group(interface, interface.group)
         end
         reactor.interfaces[interface.id] = interface
     end,
@@ -698,15 +764,32 @@ rods.add_connector_to_reactor = {
 ---@param interface Interface
 ---@param group number?
 function rods.set_interface_group(interface, group)
+    local last_group_id = interface.group
     interface.group = group
     if interface.reactor then
         if group then
             interface.reactor.group_controllers = true
             interface.reactor.controllers[interface.id] = interface
+            if last_group_id and interface.reactor.insertions[last_group_id] then
+                local last_group = interface.reactor.insertions[last_group_id]
+                last_group.owners[interface.id] = nil
+                if not first(last_group.owners) then
+                    interface.reactor.insertions[last_group_id] = nil
+                end
+            end
+            interface.reactor.insertions[group] = interface.reactor.insertions[group] or {owners={}, val=0}
+            interface.reactor.insertions[group].owners[interface.id] = true
         else
             interface.reactor.controllers[interface.id] = nil
             if not first(interface.reactor.controllers) then
                 interface.reactor.group_controllers = false
+            end
+            if last_group_id and interface.reactor.insertions[last_group_id] then
+                local last_group = interface.reactor.insertions[last_group_id]
+                last_group.owners[interface.id] = nil
+                if not first(last_group.owners) then
+                    interface.reactor.insertions[last_group_id] = nil 
+                end
             end
         end
     end
@@ -716,10 +799,18 @@ end
 function rods.unset_interface_group(interface)
     interface.controller = false
     local reactor = interface.reactor
+    local group = interface.group
     if reactor then
         reactor.controllers[interface.id] = nil
         if not first(reactor.controllers) then
             reactor.group_controllers = false
+        end
+        if group then
+            local igroup = reactor.insertions[group]
+            igroup.owners[interface.id] = nil
+            if not first(igroup.owners) then
+                reactor.insertions[group] = nil
+            end
         end
     end
 end
@@ -1031,6 +1122,15 @@ function rods.on_paste_interface(from, to)
     end
 end
 
+---@param from Interface
+---@param to ControlRod
+function rods.on_paste_from_interface_to_control_rod(from, to)
+    if from.group then
+        to.useg = true
+        to.group = from.group
+    end
+end
+
 ---@param from FuelRod
 ---@param to FuelRod
 function rods.on_paste_rod(from, to)
@@ -1039,7 +1139,7 @@ function rods.on_paste_rod(from, to)
     to.wants_max = from.wants_max
     local choose_signal_buttons = RodGUI.choose_signal_buttons
     local choose_signal_button_count = RodGUI.signal_button_count
-    for i = 0, choose_signal_button_count do
+    for i = 1, choose_signal_button_count do
         to[choose_signal_buttons[i][3]] = from[choose_signal_buttons[i][3]]
     end
     to.networked = from.networked
@@ -1058,6 +1158,8 @@ function rods.on_paste(from_ent, to_ent)
     end
     if from.type == "interface" and to.type == "interface" then
         rods.on_paste_from_rod_to_interface(from, to)
+    elseif from.type == "interface" and to.type == "control" then
+        rods.on_paste_from_interface_to_control_rod(from, to)
     elseif from.type == "fuel" and to.type == "interface" then
         rods.on_paste_interface(from, to)
     elseif from.type == "fuel" and to.type == "fuel" then

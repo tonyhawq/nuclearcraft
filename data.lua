@@ -3,7 +3,7 @@ local reactor_controller = table.deepcopy(data.raw["constant-combinator"]["const
 local control_rod = table.deepcopy(data.raw.container["steel-chest"])
 local moderator_rod = table.deepcopy(data.raw.container["steel-chest"])
 local heat_interface = table.deepcopy(data.raw["heat-interface"]["heat-interface"])
-local heat_pipe = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])
+local heat_pipe = table.deepcopy(data.raw["heat-pipe"]["heat-pipe"])    
 local interface = table.deepcopy(data.raw.container["iron-chest"])
 local source_rod = table.deepcopy(data.raw.container["steel-chest"])
 local reflector_rod = table.deepcopy(data.raw.container["steel-chest"])
@@ -181,3 +181,4 @@ data:extend({fuel_rod, control_rod, reactor_controller, moderator_rod, reflector
 
 
 require("prototypes.signal")
+require("prototypes.recipe")

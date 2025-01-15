@@ -93,6 +93,7 @@
 ---@field id integer
 ---@field circuit LuaEntity?
 ---@field csection LuaLogisticSection?
+---@field useg boolean
 ---@field group number?
 
 ---@class (exact) Moderator
@@ -134,9 +135,15 @@
 ---@field reactor Reactor?
 ---@field output_item string?
 ---@field group number?
+---@field csection LuaLogisticSection?
 ---@field controller boolean
 ---@field gsig SignalID
+---@field insertion number
 ---@field id integer
+
+---@class (exact) GroupInsertion
+---@field owners table<integer>
+---@field val number
 
 ---@class (exact) ProviderFuel
 ---@field from Interface
@@ -164,7 +171,7 @@
 ---@field need_fuel number
 ---@field need_waste number
 ---@field dumps table<string, DumpFuel>
----@field insertions number[]
+---@field insertions GroupInsertion[]
 ---@field interfaces Interface[]
 ---@field controllers Interface[]
 ---@field group_controllers boolean

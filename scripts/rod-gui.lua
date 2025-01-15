@@ -23,7 +23,7 @@ function rod_gui.on_close(event, player)
     if event.entity then
         return
     end
-    if not event.element or event.element.name ~= rod_gui.root then
+    if not event.element or not event.element.valid or event.element.name ~= rod_gui.root then
         return
     end
     rod_gui.close(player)
@@ -164,7 +164,7 @@ function rod_gui.open(player, entity)
             tooltip = rod_gui.choose_signal_buttons[i][2],
             
         }
-        button.elem_value = {name=rod[rod_gui.choose_signal_buttons[i][3]], type="virtual"} --[[@as SignalID]]
+        button.elem_value = rod[rod_gui.choose_signal_buttons[i][3]] --[[@as SignalID]]
         local info = slot_flow.add{
             type = "sprite",
             sprite = "info",
@@ -465,7 +465,7 @@ function rod_gui.player_changed_elem(event, player)
             player.create_local_flying_text{text={"nuclearcraft.signal-present"}, create_at_cursor=true}
             return
         end
-        rod[names_to_values[event.element.name]] = event.element.elem_value.name
+        Rods.set_signal(rod, names_to_values[event.element.name], event.element.elem_value--[[@as SignalID]])
         rod_gui.update(player)
     end
 end
@@ -649,7 +649,7 @@ function rod_gui.player_clicked_gui(event, player)
         for i = 1, rod_gui.signal_button_count do
             local name = rod_gui.choose_signal_buttons[i][1]
             slot_flow[name].elem_value = Rods.default_signal[rod_gui.choose_signal_buttons[i][3]]
-            rod[rod_gui.choose_signal_buttons[i][3]] = slot_flow[name].elem_value.name
+            Rods.set_signal(rod, rod_gui.choose_signal_buttons[i][3], slot_flow[name].elem_value)
         end
     elseif event.element.name == "visualize_flux" then
         local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
@@ -972,7 +972,7 @@ end
 ---@param rod FuelRod
 ---@param value SignalID
 function rod_gui.signal_present(rod, value)
-    return rod.tsig == value.name or
+    return rod.tsig.name == value.name or
     rod.psig.name == value.name or
     rod.esig.name == value.name or
     rod.fsig.name == value.name or

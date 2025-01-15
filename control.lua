@@ -4,7 +4,6 @@ Rods = require("__nuclearcraft__.scripts.rods")
 InterfaceGUI = require("__nuclearcraft__.scripts.interface-gui")
 RodGUI = require("__nuclearcraft__.scripts.rod-gui")
 ControlRodGUI = require("__nuclearcraft__.scripts.control-rod-gui")
-ControllerGUI = require("__nuclearcraft__.scripts.controller-gui")
 
 script.on_init(function()
     Rods.setup()
@@ -15,6 +14,7 @@ script.on_nth_tick(15, function (_)
     for _, player in pairs(game.connected_players) do
         RodGUI.update(player)
         InterfaceGUI.update(player)
+        ControlRodGUI.update(player)
     end
 end)
 
@@ -51,7 +51,6 @@ end)
 script.on_event(defines.events.on_gui_confirmed, function (event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     RodGUI.on_gui_confirmed(event, player)
-    ControllerGUI.on_gui_confirmed(event, player)
     InterfaceGUI.on_gui_confirmed(event, player)
 end)
 
@@ -60,7 +59,6 @@ script.on_event(defines.events.on_gui_opened, function(event)
     local entity = event.entity --[[@as LuaEntity]]
     InterfaceGUI.open(player, entity)
     RodGUI.open(player, entity)
-    ControllerGUI.open(player, entity)
     ControlRodGUI.open(player, entity)
 end)
 
@@ -68,8 +66,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.close(player)
     RodGUI.on_close(event, player)
-    ControllerGUI.on_close(event, player)
-    ControlRodGUI.close(player)
+    ControlRodGUI.on_close(event, player)
 end)
 
 script.on_event(defines.events.on_gui_switch_state_changed, function(event)
@@ -82,7 +79,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.player_clicked_gui(event, player)
     RodGUI.player_clicked_gui(event, player)
-    ControllerGUI.player_clicked_gui(event, player)
+    ControlRodGUI.player_clicked_gui(event, player)
 end)
 
 script.on_event(defines.events.on_gui_elem_changed, function(event)

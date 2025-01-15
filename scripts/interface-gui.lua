@@ -144,7 +144,7 @@ end
 
 ---@param root LuaGuiElement
 function interface_gui.create_circuit_flow(root)
-    if root.frame.circuit_flow.tags and root.frame.circuit_flow.tags.exists then
+    if root.frame.circuit_flow.tags.exists then
         return
     end
     root.frame.circuit_flow.tags = {exists = true}
@@ -195,20 +195,36 @@ function interface_gui.create_circuit_flow(root)
     }
     confirm.style.horizontal_align = "right"
     local interface = storage.interfaces[root.tags.id] --[[@as Interface]]
-    if not interface.group then
-        interface.group = 0
-    end
     textbox.text = tostring(interface.group)
     circuit_filter.elem_value = interface.gsig
+    local collision_flow = flow.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "collision_flow",
+    }
+    local insertion_flow = flow.add{
+        type = "flow",
+        direction = "horizontal",
+        name = "insertion_flow",
+    }
+    insertion_flow.add{
+        type = "label",
+        style = "semibold_label",
+        caption = {"nuclearcraft.group-insertion"}
+    }
+    local insertion = insertion_flow.add{
+        type = "progressbar",
+        style = "production_progressbar",
+        name = "group_insertion_progressbar"
+    }
+    insertion.style.horizontally_squashable = true
+    insertion.style.horizontally_stretchable = true
 end
 
 ---@param root LuaGuiElement
 function interface_gui.destroy_circuit_flow(root)
-    if not root.frame.circuit_flow.tags.exists then
-        return
-    end
     root.frame.circuit_flow.tags = {exists=false}
-    root.frame.circuit_flow.destroy()
+    root.frame.circuit_flow.clear()
 end
 
 ---@param player LuaPlayer
@@ -255,7 +271,7 @@ function interface_gui.update(player)
             root.frame.switch_flow.add{
                 type = "label",
                 name = "label",
-                caption = "nuclearcraft.group-controller"
+                caption = {"nuclearcraft.group-controller"}
             }.style.horizontal_align = "right"
             root.frame.switch_flow.add{
                 type = "checkbox",
@@ -299,7 +315,28 @@ function interface_gui.update(player)
     end
     if root.frame.circuit_flow.tags.exists then
         root.frame.circuit_flow.buttons.circuit_filter_button.elem_value = interface.gsig
-    elseif root.frame.switch_flow.is_group_controller.state then
+        if interface.controller then
+            root.frame.circuit_flow.insertion_flow.group_insertion_progressbar.value = interface.insertion / 1000
+        else
+            root.frame.circuit_flow.insertion_flow.group_insertion_progressbar.value = 0
+        end
+        if interface.group then
+            if not root.frame.circuit_flow.collision_flow.label then
+                if Rods.group_id_in_use(interface, interface.group) then
+                    root.frame.circuit_flow.collision_flow.add{
+                        type = "label",
+                        style = "bold_red_label",
+                        name = "label",
+                        caption = {"nuclearcraft.groupid-in-use"}
+                    }
+                end
+            else
+                if not Rods.group_id_in_use(interface, interface.group) then
+                    root.frame.circuit_flow.collision_flow.clear()
+                end
+            end
+        end
+    elseif root.frame.switch_flow.is_group_controller and root.frame.switch_flow.is_group_controller.state then
         interface_gui.create_circuit_flow(root)
     end
 end
@@ -360,13 +397,25 @@ function interface_gui.player_clicked_gui(event, player)
     elseif event.element.name == "is_group_controller" then
         local interface = storage.interfaces[root.tags.id]--[[@as Interface]]
         if event.element.state then
-            interface_gui.create_circuit_flow(root)
             interface.controller = true
-            Rods.set_interface_group(interface, interface.group or 0)
+            interface_gui.create_circuit_flow(root)
+            if interface.group then
+                Rods.set_interface_group(interface, interface.group)
+            end
         else
             interface_gui.destroy_circuit_flow(root)
             Rods.unset_interface_group(interface)
         end
+    elseif event.element.name == "group_confirm" then
+        local interface = storage.interfaces[root.tags.id] --[[@as Interface]]
+        local worked = interface_gui.confirm_text(root, root.frame.circuit_flow.buttons.group_selector_textbox, player)
+        if not worked then
+            return
+        end
+        if Rods.group_id_in_use(interface, root.frame.circuit_flow.tags.cached_groupid) then
+            player.create_local_flying_text{text={"nuclearcraft.groupid-in-use-ignored"}, create_at_cursor=true}
+        end
+        Rods.set_interface_group(interface, root.frame.circuit_flow.tags.cached_groupid)
     end
 end
 
@@ -409,6 +458,7 @@ end
 ---@param root LuaGuiElement
 ---@param element LuaGuiElement
 ---@param player LuaPlayer
+---@return boolean
 function interface_gui.confirm_text(root, element, player)
     local interface = storage.interfaces[root.tags.id] --[[@as Interface]]
     local num = tonumber(element.text)
@@ -416,15 +466,16 @@ function interface_gui.confirm_text(root, element, player)
         player.play_sound{path="utility/cannot_build"}
         player.create_local_flying_text{text={"nuclearcraft.not-a-number"}, create_at_cursor=true}
         root.frame.circuit_flow.buttons.group_selector_textbox.text = tostring(interface.group)
-        return
+        return false
     end
     if math.floor(num) ~= math.ceil(num) then
         player.play_sound{path="utility/cannot_build"}
         player.create_local_flying_text{text={"nuclearcraft.no-decimals"}, create_at_cursor=true}
         root.frame.circuit_flow.buttons.group_selector_textbox.text = tostring(interface.group)
-        return
+        return false
     end
-    Rods.set_interface_group(interface, num)
+    root.frame.circuit_flow.tags = {cached_groupid = num, exists = root.frame.circuit_flow.tags.exists}
+    return true
 end
 
 ---@param event EventData.on_gui_confirmed
