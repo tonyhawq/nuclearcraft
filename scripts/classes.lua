@@ -23,6 +23,11 @@
 ---@field affector FuelRod|Source
 ---@field moderation number
 
+---@class (exact) Affects
+---@field control_rods ControlRod
+---@field affects FuelRod
+---@field conversion number
+
 ---@class (exact) Fuel
 ---@field item string
 ---@field burnt_item string
@@ -42,24 +47,25 @@
 ---@field wants_max number?
 ---@field type "fuel"
 ---@field fuel Fuel?
----@field affectors Affector[]
+---@field affects Affects[][]
 ---@field power number
+---@field fast_coeff number
+---@field slow_coeff number
 ---@field fast_flux number
 ---@field slow_flux number
+---@field cslow number
+---@field cfast number
 ---@field in_slow_flux number
 ---@field in_fast_flux number
 ---@field base_fast_flux number
 ---@field base_slow_flux number
----@field efficiency number
----@field penalty_val number
----@field unpenalized number
 ---@field entity LuaEntity
 ---@field connector LuaEntity
 ---@field reactor Reactor?
 ---@field id integer
 ---@field temperature number
 ---@field base_efficiency number
----@field basic_sources Source[]
+---@field efficiency number
 ---@field affectable_distance number
 ---@field interface LuaEntity?
 ---@field csection LuaLogisticSection?

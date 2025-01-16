@@ -12,7 +12,7 @@ local pow = math.pow
 formula.characteristics = {
     ["uranium"] = {
         flux = function (s, f, t)
-            local output = s / 2 + ((s/1000)^2)/sqrt(t+1)+f/2000
+            local output = 2*s
             return min(output * 0.1, fmax), min(output * 0.9, fmax)
         end,
         power = function (slow_flux, fast_flux)

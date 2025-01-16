@@ -794,7 +794,7 @@ function rod_gui.update(player)
         fuel_flow.burning_fuel.number = fuel.buffered
         fuel_flow.burnt_fuel.number = fuel.buffered_out
         inside_frame.efficiency.value = rod.efficiency / character.max_efficiency
-        inside_frame.efficiency_penalty.value = 1 - rod.penalty_val
+        inside_frame.efficiency_penalty.value = 1
         if not rod.wants_fuel then
             fuel_flow.fuel_selection.elem_value = nil
         else

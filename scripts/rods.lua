@@ -92,10 +92,16 @@ function rods.on_fuel_rod_built(entity)
         type = "fuel",
         affectors = {},
         power = 0,
+        fast_coeff = 0.5,
+        slow_coeff = 0.5,
+        cslow = 0,
+        cfast = 0,
         fast_flux = 0,
         slow_flux = 0,
         in_slow_flux = 0,
         in_fast_flux = 0,
+        affects = {},
+        base_efficiency = 1,
         efficiency = 1,
         temperature = 0,
         entity = entity,
@@ -107,10 +113,6 @@ function rods.on_fuel_rod_built(entity)
         base_fast_flux = 0,
         base_slow_flux = 0,
         wants_fuel = nil,
-        base_efficiency = 1,
-        basic_sources = {},
-        unpenalized = 1,
-        penalty_val = 1,
         affectable_distance = 10,
         delta_flux = 0,
         requested = false,
@@ -447,31 +449,6 @@ function rods.update_fuel_rod_fuel(rod, reactor)
 end
 
 ---@param rod FuelRod
-function rods.fake_update_fuel_rod(rod)
-    local slow_flux = rod.base_slow_flux
-    local fast_flux = rod.base_fast_flux
-    local temperature = rod.temperature
-    local penalty = 1
-    for _, affector in pairs(rod.affectors) do
-        local affector_rod = affector.affector
-        local insertion = 1
-        for _, control_rod in pairs(affector.control_rods) do
-            insertion = insertion * control_rod.insertion
-        end
-        insertion = 1 - insertion
-        slow_flux = slow_flux + insertion * (affector_rod.slow_flux + affector_rod.fast_flux * affector.moderation)
-        fast_flux = fast_flux + insertion * (affector_rod.fast_flux * (1 - affector.moderation))
-        if affector_rod.penalty then
-            penalty = penalty * affector_rod.penalty
-        end
-    end
-    rod.penalty_val = penalty * rod.base_efficiency
-    rod.in_slow_flux = slow_flux
-    rod.in_fast_flux = fast_flux
-    rod.temperature = rod.interface.temperature
-end
-
----@param rod FuelRod
 ---@param val string
 ---@param min number?
 ---@param max number?
@@ -539,6 +516,10 @@ function rods.update_fuel_rod(rod)
     local reactor = rod.reactor --[[@as Reactor]]
     local fuel = rod.fuel
     local temperature = rod.interface.temperature --[[@as number]]
+    local in_slow = rod.cslow + rod.base_slow_flux
+    local in_fast = rod.cfast + rod.base_fast_flux
+    rod.cslow = 0
+    rod.cfast = 0
     if temperature > meltdown_temperature then
         rods.meltdown(rod)
         return
@@ -616,47 +597,44 @@ function rods.update_fuel_rod(rod)
             end
         end
     end
-    local last_sflux = rod.slow_flux
-    local last_fflux = rod.fast_flux
-    local slow_flux = rod.base_slow_flux
-    local fast_flux = rod.base_fast_flux
-    local penalty = 1
-    for _, affector in pairs(rod.affectors) do
-        local affector_rod = affector.affector
-        local insertion = 1
-        local crods = false
-        for _, control_rod in pairs(affector.control_rods) do
-            crods = true
-            insertion = insertion * control_rod.insertion
-        end
-        if crods then
-            insertion = 1 - insertion
-        end
-        slow_flux = slow_flux + insertion * (affector_rod.slow_flux + affector_rod.fast_flux * affector.moderation)
-        fast_flux = fast_flux + insertion * (affector_rod.fast_flux * (1 - affector.moderation))
-        if affector_rod.penalty then
-            penalty = penalty * affector_rod.penalty
-        end
-    end
+    rod.in_slow_flux = in_slow
+    rod.in_fast_flux = in_fast
     local character = Formula.characteristics[rod.fuel.character_name]
-    slow_flux = math.max(slow_flux, 0)
-    fast_flux = math.max(fast_flux, 0)
-    local out_slow, out_fast = character.flux(slow_flux, fast_flux, temperature)
-    rod.slow_flux = math.max(out_slow, 0)
-    rod.fast_flux = math.max(out_fast, 0)
-    rod.power = character.power(slow_flux, fast_flux, temperature)
-    local norm_eff = character.efficiency(slow_flux, fast_flux, temperature)
-    rod.efficiency = norm_eff * penalty * rod.base_efficiency
-    rod.penalty_val = penalty * rod.base_efficiency
-    rod.unpenalized = norm_eff
-    rod.in_slow_flux = slow_flux
-    rod.in_fast_flux = fast_flux
-    rod.interface.set_heat_setting{mode="add", temperature=rod.power / heat_interface_capacity / 60}
-    rod.temperature =temperature
-    rod.delta_flux = rod.slow_flux + rod.fast_flux - last_sflux - last_fflux
-    fuel.fuel_remaining = fuel.fuel_remaining - rod.power / rod.efficiency
+    local out_slow, out_fast = character.flux(in_slow, in_fast, temperature)
+    local power = character.power(in_slow, in_fast, temperature)
+    local efficiency = character.efficiency(in_slow, in_fast, temperature)
+    rod.slow_flux = out_slow
+    rod.fast_flux = out_fast
+    rod.power = power
+    rod.efficiency = efficiency
+    fuel.fuel_remaining = fuel.fuel_remaining - power / efficiency
+    rod.interface.set_heat_setting{type="add", temperature=power / heat_interface_capacity}
     if fuel.fuel_remaining < 0 then
         fuel.fuel_remaining = 0
+    end
+    for _, dir in pairs(rod.affects) do
+        local sf = out_slow / 4
+        local ff = out_fast / 4
+        for _, affects in pairs(dir) do
+            local factor = 1
+            for _, crod in pairs(affects.control_rods) do
+                factor = factor * (1-crod.insertion)
+                if factor == 0 then
+                    goto fullbreak
+                end
+            end
+            ---@cast affects Affects
+            sf = (sf + ff * affects.conversion) * factor
+            ff = (ff * (1-affects.conversion)) * factor
+            local arod = affects.affects
+            local slow_coeff = arod.slow_coeff
+            local fast_coeff = arod.fast_coeff
+            arod.cslow = arod.cslow + slow_coeff * sf
+            arod.cfast = arod.cfast + fast_coeff * ff
+            sf = sf - sf * slow_coeff
+            ff = ff - ff * fast_coeff
+        end
+        ::fullbreak::
     end
     if rod.networked and rod.csection then
         local section = rod.csection --[[@as LuaLogisticSection]]
@@ -971,7 +949,7 @@ end
 function rods.get_moderation_from_moderators(moderators)
     local value = 1
     for _, mod in pairs(moderators) do
-        value = value * mod.conversion
+        value = value * (1-mod.conversion)
     end
     return (1 - value)
 end
@@ -995,13 +973,12 @@ function rods.create_affectors(reactor)
         rod.base_fast_flux = 0
         rod.base_slow_flux = 0
         rod.base_efficiency = 1
-        rod.penalty_val = 1
-        rod.affectors = {}
-        rod.basic_sources = {}
+        rod.affects = {}
         for i = 1, 4 do
-            local visited_moderators = {}
+            rod.affects[i] = {}
             local visited_control_rods = {}
-            local control_rod_count = 0
+            local visited_moderators = {}
+            local affects = rod.affects[i]
             local connectors = rods.find_in_line{source=rod.entity, angle=i * math.pi / 2, length=rod.affectable_distance, condition=matches_reactor_filter}
             for _, connector in pairs(connectors) do
                 local owner = connector.owner
@@ -1013,27 +990,22 @@ function rods.create_affectors(reactor)
                 end
                 if owner.type == "fuel" then
                     ---@cast owner FuelRod
-                    table.insert(rod.affectors, {control_rods = rods.shallow_copy(visited_control_rods), affector=owner, moderation=rods.get_moderation_from_moderators(visited_moderators)} --[[@as Affector]])
+                    if distance_sqr(owner.entity.position, rod.entity.position) <= owner.affectable_distance then
+                        table.insert(affects, {affects=owner, control_rods=visited_control_rods, conversion=rods.get_moderation_from_moderators(visited_moderators)}--[[@as Affects]])
+                        visited_control_rods = {}
+                    end
                 elseif owner.type == "control" then
                     ---@cast owner ControlRod
-                    control_rod_count = control_rod_count + 1
                     table.insert(visited_control_rods, owner)
-                elseif owner.type == "source" then
-                    ---@cast owner Source
-                    if distance_sqr(connector.entity.position, rod.entity.position) <= (owner.range ^ 2) then
-                        if control_rod_count == 0 then
-                            local moderation = rods.get_moderation_from_moderators(visited_moderators)
-                            rod.base_slow_flux = rod.base_slow_flux + moderation * owner.fast_flux + owner.slow_flux
-                            rod.base_fast_flux = rod.base_fast_flux + owner.fast_flux * (1-moderation)
-                            rod.base_efficiency = rod.base_efficiency * owner.penalty
-                            table.insert(rod.basic_sources, owner)
-                        else
-                            table.insert(rod.affectors, {control_rods = rods.shallow_copy(visited_control_rods), affector=owner, moderation=rods.get_moderation_from_moderators(visited_moderators)})
-                        end
-                    end
                 elseif owner.type == "mod" then
                     ---@cast owner Moderator
                     table.insert(visited_moderators, owner)
+                elseif owner.type == "source" then
+                    ---@cast owner Source
+                    if distance_sqr(owner.entity.position, rod.entity.position) <= 1 then
+                        rod.base_slow_flux = rod.base_slow_flux + owner.slow_flux
+                        rod.base_fast_flux = rod.base_fast_flux + owner.fast_flux
+                    end
                 end
                 ::continue::
             end
@@ -1046,12 +1018,13 @@ function rods.deactivate_fuel_rod(rod)
     rod.power = 0
     rod.efficiency = 1
     rod.base_efficiency = 1
-    rod.penalty_val = 1
     if rod.interface and rod.interface.valid then
         rod.interface.set_heat_setting{mode="add",temperature=0}
     end
     rod.slow_flux = 0
     rod.fast_flux = 0
+    rod.cslow = 0
+    rod.cfast = 0
     rod.in_slow_flux = 0
     rod.in_fast_flux = 0
     if rod.requested then
