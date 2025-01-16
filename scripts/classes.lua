@@ -175,3 +175,4 @@
 ---@field interfaces Interface[]
 ---@field controllers Interface[]
 ---@field group_controllers boolean
+---@field melting_down boolean?

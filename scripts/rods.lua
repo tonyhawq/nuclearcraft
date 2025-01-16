@@ -8,6 +8,7 @@ rods.connector_name = "nc-connector"
 rods.heat_interface_capacity = 1
 rods.meltdown_temperature = 2500
 local heat_interface_capacity = rods.heat_interface_capacity
+local meltdown_temperature = rods.meltdown_temperature
 
 local function first(tabl)
     local _, v = next(tabl)
@@ -520,9 +521,28 @@ function rods.set_signal(rod, sig, value)
 end
 
 ---@param rod FuelRod
+function rods.meltdown(rod)
+    if rod.reactor then
+        if not rod.reactor.melting_down then
+            rod.reactor.melting_down = true
+            for _, fuel_rod in pairs(rod.reactor.fuel_rods) do
+                rods.meltdown(fuel_rod)
+            end
+            rods.destroy_reactor(rod.reactor)
+        end
+    end
+    rod.entity.destroy()
+end
+
+---@param rod FuelRod
 function rods.update_fuel_rod(rod)
     local reactor = rod.reactor --[[@as Reactor]]
     local fuel = rod.fuel
+    local temperature = rod.interface.temperature --[[@as number]]
+    if temperature > meltdown_temperature then
+        rods.meltdown(rod)
+        return
+    end
     if not fuel then
         if rod.wants_fuel and (rod.wants_min or 0) > 0 then
             if not rod.requested then
@@ -600,7 +620,6 @@ function rods.update_fuel_rod(rod)
     local last_fflux = rod.fast_flux
     local slow_flux = rod.base_slow_flux
     local fast_flux = rod.base_fast_flux
-    local temperature = rod.temperature
     local penalty = 1
     for _, affector in pairs(rod.affectors) do
         local affector_rod = affector.affector
@@ -633,7 +652,7 @@ function rods.update_fuel_rod(rod)
     rod.in_slow_flux = slow_flux
     rod.in_fast_flux = fast_flux
     rod.interface.set_heat_setting{mode="add", temperature=rod.power / heat_interface_capacity / 60}
-    rod.temperature = rod.interface.temperature
+    rod.temperature =temperature
     rod.delta_flux = rod.slow_flux + rod.fast_flux - last_sflux - last_fflux
     fuel.fuel_remaining = fuel.fuel_remaining - rod.power / rod.efficiency
     if fuel.fuel_remaining < 0 then

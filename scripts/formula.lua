@@ -2,6 +2,7 @@ local formula = {}
 
 formula.max = 1000000
 
+local fmax = formula.max
 local max = math.max
 local min = math.min
 local sqrt= math.sqrt
@@ -10,9 +11,9 @@ local pow = math.pow
 ---@type table<string, FuelCharacteristic>
 formula.characteristics = {
     ["uranium"] = {
-        flux = function (slow_flux, fast_flux, temperature)
-            local output = slow_flux / 2 + ((slow_flux/100)^2)/sqrt(temperature+1)+fast_flux/200
-            return math.min(output * 0.1, formula.max), math.min(output * 0.9, formula.max)
+        flux = function (s, f, t)
+            local output = s / 2 + ((s/1000)^2)/sqrt(t+1)+f/2000
+            return min(output * 0.1, fmax), min(output * 0.9, fmax)
         end,
         power = function (slow_flux, fast_flux)
             return slow_flux
@@ -30,6 +31,28 @@ formula.characteristics = {
         max_slow_flux = 40,
         max_efficiency = 15,
         max_power = 40,
+    },
+    ["leu"] = {
+        flux = function (s, f, t)
+            local output = s/2+0.01-max(0,s-30)+f/2000
+            return 0, min(output,fmax)
+        end,
+        power = function (s, f, t)
+            return 1.5*s
+        end,
+        efficiency = function (s, f, t)
+            return (f/100+t/10000+1)^4
+        end,
+        target_fast_flux = function (slow_flux, fast_flux, temperature)
+            return 60
+        end,
+        target_slow_flux = function (slow_flux, fast_flux, temperature)
+            return 30
+        end,
+        max_slow_flux = 60,
+        max_fast_flux = 60,
+        max_efficiency = 15,
+        max_power = 30,
     }
 }
 
@@ -44,15 +67,15 @@ formula.fuels = {
         buffered = 0,
         buffered_out = 0,
     } --[[@as Fuel]],
-    ["copper-cable"] = {
-        item = "copper-cable",
-        burnt_item = "copper-plate",
-        character_name = "uranium",
-        fuel_remaining = 8000,
-        total_fuel = 8000,
+    ["low-enriched-uranium-fuel-cell"] = {
+        item = "low-enriched-uranium-fuel-cell",
+        burnt_item = "depleted-low-enriched-uranium-fuel-cell",
+        character_name = "leu",
+        fuel_remaining = 2000,
+        total_fuel = 2000,
         buffered = 0,
         buffered_out = 0,
-    } --[[@as Fuel]],
+    }
 }
 
 ---@type table<string, BurntFuel>
@@ -61,9 +84,9 @@ formula.burnt_items = {
         item = "depleted-uranium-fuel-cell",
         from = {"uranium-fuel-cell"},
     },
-    ["copper-plate"] = {
-        item = "copper-plate",
-        from = {"copper-cable"},
+    ["depleted-low-enriched-uranium-fuel-cell"] = {
+        item = "depleted-low-enriched-uranium-fuel-cell",
+        from = {"low-enriched-uranium-fuel-cell"},
     }
 }
 
