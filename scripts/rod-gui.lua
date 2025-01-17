@@ -630,20 +630,7 @@ function rod_gui.player_clicked_gui(event, player)
     if not root or not root.tags or not root.tags.id then
         return
     end
-    if event.element.name == "see_affectors" then
-        local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
-        rendering.clear("nuclearcraft")
-        local offset = 0
-        for _, affector in pairs(rod.affectors) do
-            offset = offset + 1
-            rendering.draw_line{from={rod.entity.position.x + offset / 32, rod.entity.position.y}, to=affector.affector.entity.position, surface=rod.entity.surface,color={0, 0, 255},width=1}
-            local coffset = 0
-            for _, control_rod in pairs(affector.control_rods) do
-                coffset = coffset + 2
-                rendering.draw_line{from={affector.affector.entity.position.x + coffset / 32, affector.affector.entity.position.y + coffset / 32}, to=control_rod.entity.position, surface=affector.affector.entity.surface, color={0, 255, 0}, width=1}
-            end
-        end
-    elseif event.element.name == "reset_circuit_filters" then
+    if event.element.name == "reset_circuit_filters" then
         local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
         local slot_flow = root.flow.circuit_frame.slot_frame.slot_flow
         for i = 1, rod_gui.signal_button_count do
@@ -651,14 +638,6 @@ function rod_gui.player_clicked_gui(event, player)
             slot_flow[name].elem_value = Rods.default_signal[rod_gui.choose_signal_buttons[i][3]]
             Rods.set_signal(rod, rod_gui.choose_signal_buttons[i][3], slot_flow[name].elem_value)
         end
-    elseif event.element.name == "visualize_flux" then
-        local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
-        local reactor = rod.reactor
-        if not reactor then
-            player.print("Rod must have reactor.")
-            return
-        end
-        reactor.visualize = true
     elseif event.element.name == "set_fuel_sliders_button" then
         local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
         Rods.set_fuel_request(rod, rod.wants_fuel, root.flow.frame.minimum_slider_flow.tags.value, root.flow.frame.maximum_slider_flow.tags.value)
