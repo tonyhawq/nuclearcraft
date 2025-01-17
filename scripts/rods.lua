@@ -705,6 +705,12 @@ function rods.get_available_dumps(reactor)
     end
 end
 
+---@param interface Interface
+function rods.update_controller(interface)
+    interface.insertion = interface.entity.get_signal(interface.gsig, defines.wire_connector_id.circuit_green)
+    interface.reactor--[[@as Reactor]].insertions[interface.group].val = math.min(math.max(interface.insertion / 1000, 0), 1)
+end
+
 ---@param reactor Reactor
 function rods.update_reactor(reactor)
     reactor.fuels = {}
@@ -788,17 +794,21 @@ function rods.set_interface_group(interface, group)
     interface.group = group
     if interface.reactor then
         if group then
-            interface.reactor.group_controllers = true
-            interface.reactor.controllers[interface.id] = interface
-            if last_group_id and interface.reactor.insertions[last_group_id] then
-                local last_group = interface.reactor.insertions[last_group_id]
+            local reactor = interface.reactor --[[@as Reactor]]
+            reactor.group_controllers = true
+            reactor.controllers[interface.id] = interface
+            if last_group_id and reactor.insertions[last_group_id] then
+                local last_group = reactor.insertions[last_group_id]
                 last_group.owners[interface.id] = nil
                 if not first(last_group.owners) then
-                    interface.reactor.insertions[last_group_id] = nil
+                    reactor.insertions[last_group_id] = nil
                 end
             end
-            interface.reactor.insertions[group] = interface.reactor.insertions[group] or {owners={}, val=0}
-            interface.reactor.insertions[group].owners[interface.id] = true
+            reactor.insertions[group] = interface.reactor.insertions[group] or {owners={}, val=0}
+            reactor.insertions[group].owners[interface.id] = true
+            reactor.add_iscore = math.max(table_size(reactor.controllers), 1) / 60
+            reactor.ik = nil
+            reactor.iscore = 0
         else
             interface.reactor.controllers[interface.id] = nil
             if not first(interface.reactor.controllers) then
@@ -811,6 +821,9 @@ function rods.set_interface_group(interface, group)
                     interface.reactor.insertions[last_group_id] = nil 
                 end
             end
+            interface.reactor.add_iscore = math.max(table_size(interface.reactor.controllers), 1) / 60
+            interface.reactor.ik = nil
+            interface.reactor.iscore = 0
         end
     end
 end
@@ -881,6 +894,12 @@ function rods.create_reactor(source)
         group_controllers = false,
         insertions = {},
         interfaces = {},
+        score = 0,
+        add_score = 0,
+        cscore = 0,
+        add_cscore = 0,
+        iscore = 0,
+        add_iscore = 0,
     } --[[@as Reactor]]
     rods.add_connector_to_reactor[source.type](storage.connectors[source.connector.unit_number], reactor)
     local is_valid_reactor = true
@@ -902,6 +921,11 @@ function rods.create_reactor(source)
     end
     rods.create_affectors(reactor)
     storage.reactors[reactor.id] = reactor
+    local fuel_rods = table_size(reactor.fuel_rods)
+    local control_rods = table_size(reactor.control_rods)
+    reactor.add_score = math.max(fuel_rods, 1) / 60
+    reactor.add_cscore = math.max(control_rods, 1) / 60
+    reactor.add_iscore = math.max(table_size(reactor.controllers), 1) / 60
 end
 
 ---@param entity LuaEntity

@@ -182,3 +182,12 @@
 ---@field controllers Interface[]
 ---@field group_controllers boolean
 ---@field melting_down boolean?
+---@field score number
+---@field cscore number
+---@field iscore number
+---@field add_score number
+---@field add_cscore number
+---@field add_iscore number
+---@field k number?
+---@field ck number?
+---@field ik number?

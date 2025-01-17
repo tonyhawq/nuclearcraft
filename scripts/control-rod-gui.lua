@@ -185,7 +185,11 @@ end
 ---@param player LuaPlayer
 function rod_gui.update(player)
     local root = player.gui.screen[rod_gui.root] --[[@as LuaGuiElement]]
+    if not root then
+        return
+    end
     if not root or not root.tags or not root.tags.id or not storage.rods[root.tags.id] then
+        rod_gui.close(player)
         return
     end
     local rod = storage.rods[root.tags.id] --[[@as ControlRod]]

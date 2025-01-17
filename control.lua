@@ -18,15 +18,77 @@ script.on_nth_tick(15, function (_)
     end
 end)
 
-script.on_nth_tick(60, function (_)
-    for _, reactor in pairs(storage.reactors) do
-        Rods.update_reactor(reactor)
-    end
-end)
-
 script.on_configuration_changed(function()
     Rods.setup()
     Schedule.setup()
+end)
+
+script.on_event(defines.events.on_tick, function(event)
+    for _, reactor in pairs(storage.reactors) do
+        ---@cast reactor Reactor
+        if next(reactor.fuel_rods) then
+            local score = reactor.score
+            score = score + reactor.add_score
+            if score > 0 then
+                reactor.fuels = {}
+                reactor.dumps = {}
+                if reactor.need_fuel > 0 and next(reactor.inputs) then
+                    Rods.get_available_fuels(reactor)
+                end
+                if reactor.need_waste > 0 and next(reactor.outputs) then
+                    Rods.get_available_dumps(reactor)
+                end
+                local k = reactor.k
+                local v
+                local fuel_rods = reactor.fuel_rods
+                while score > 0 do
+                    score = score - 1
+                    k, v = next(fuel_rods, k)
+                    if not v then k, v = next(fuel_rods, k) end
+                    Rods.update_fuel_rod(v)
+                    if reactor.melting_down then
+                        break
+                    end
+                end
+                reactor.k = k
+            end
+            reactor.score = score
+        end
+        if next(reactor.control_rods) then
+            local score = reactor.cscore
+            score = score + reactor.add_cscore
+            if score > 0 then
+                local k = reactor.ck
+                local v
+                local control_rods = reactor.control_rods
+                while score > 0 do
+                    score = score - 1
+                    k, v = next(control_rods, k)
+                    if not v then k, v = next(control_rods, k) end
+                    Rods.update_control_rod(v)
+                end
+                reactor.ck = k
+            end
+            reactor.cscore = score
+        end
+        if reactor.group_controllers then
+            local score = reactor.iscore
+            score = score + reactor.add_iscore
+            if score > 0 then
+                local k = reactor.ik
+                local v
+                local controllers = reactor.controllers
+                while score > 0 do
+                    score = score - 1
+                    k, v = next(controllers, k)
+                    if not v then k, v = next(controllers, k) end
+                    Rods.update_controller(v)
+                end
+                reactor.ik = k
+            end
+            reactor.iscore = score
+        end
+    end
 end)
 
 script.on_event(defines.events.on_script_trigger_effect, function(event)
