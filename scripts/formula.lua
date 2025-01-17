@@ -7,6 +7,7 @@ local max = math.max
 local min = math.min
 local sqrt= math.sqrt
 local pow = math.pow
+local mlog = math.log
 
 ---@type table<string, FuelCharacteristic>
 formula.characteristics = {
@@ -16,7 +17,7 @@ formula.characteristics = {
             return min(output * 0.1, fmax), min(output * 0.9, fmax)
         end,
         power = function (slow_flux, fast_flux)
-            return slow_flux
+            return slow_flux + fast_flux
         end,
         efficiency = function (slow_flux, fast_flux, temperature)
             return min(max(fast_flux + temperature / 200, 1), 15)
@@ -34,23 +35,23 @@ formula.characteristics = {
     },
     ["leu"] = {
         flux = function (s, f, t)
-            local output = s/2+0.01-max(0,s-30)+f/2000
+            local output = s/2+mlog(s+1)*8+f/1000
             return 0, min(output,fmax)
         end,
         power = function (s, f, t)
-            return 1.5*s
+            return s + f
         end,
         efficiency = function (s, f, t)
-            return (f/100+t/10000+1)^4
+            return min(max((f/100+t/10000+1)^4,1),15)
         end,
         target_fast_flux = function (slow_flux, fast_flux, temperature)
-            return 60
+            return 20
         end,
         target_slow_flux = function (slow_flux, fast_flux, temperature)
-            return 30
+            return 21
         end,
-        max_slow_flux = 60,
-        max_fast_flux = 60,
+        max_slow_flux = 21,
+        max_fast_flux = 21,
         max_efficiency = 15,
         max_power = 30,
     }

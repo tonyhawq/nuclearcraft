@@ -85,12 +85,11 @@ function rods.on_fuel_rod_built(entity)
         error("Could not construct connector for fuel rod "..tostring(entity.name))
     end
     local interface = entity.surface.create_entity{name=rods.heat_interface_name, position=entity.position, force=entity.force}
-    local section = ((entity--[[@as LuaEntity]]).get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]).get_section(1)
+    local section = ((entity--[[@as LuaEntity]]).get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]).add_section()
     local id = script.register_on_object_destroyed(entity)
     local fuel_rod = {
         fuel = nil,
         type = "fuel",
-        affectors = {},
         power = 0,
         fast_coeff = 0.5,
         slow_coeff = 0.5,
@@ -309,7 +308,7 @@ function rods.on_destroyed(event)
         if rod.interface and rod.interface.valid then
             rod.interface.destroy()
         end
-        if rod.connector.valid then
+        if rod.connector and rod.connector.valid then
             rod.connector.destroy()
         end
         if rod.heat_pipe and rod.heat_pipe.valid then
@@ -321,7 +320,7 @@ function rods.on_destroyed(event)
         if reflector.reactor then
             rods.destroy_reactor(reflector.reactor)
         end
-        if reflector.connector.valid  then
+        if reflector.connector and reflector.connector.valid  then
             reflector.connector.destroy()
         end
         if reflector.heat_pipe and reflector.heat_pipe.valid then
@@ -333,7 +332,7 @@ function rods.on_destroyed(event)
         if moderator.reactor then
             rods.destroy_reactor(moderator.reactor)
         end
-        if moderator.connector.valid  then
+        if moderator.connector and moderator.connector.valid  then
             moderator.connector.destroy()
         end
         if moderator.heat_pipe and moderator.heat_pipe.valid then
@@ -477,6 +476,21 @@ function rods.set_fuel_request(rod, val, min, max)
     end
 end
 
+---@param rod FuelRod
+function rods.clear_circuits(rod)
+    if not rod.csection.valid then
+        rod.csection = rod.entity.get_control_behavior()--[[@as LuaConstantCombinatorControlBehavior]].add_section()
+    end
+    local section = rod.csection --[[@as LuaLogisticSection]]
+    section.set_slot(1, {value={type="item", name="fuel-rod", quality="normal"}, min=0})
+    section.set_slot(2, {value=rod.tsig, min=0}) ---@diagnostic disable-line
+    section.set_slot(3, {value=rod.psig, min=0}) ---@diagnostic disable-line
+    section.set_slot(4, {value=rod.esig, min=0}) ---@diagnostic disable-line
+    section.set_slot(5, {value=rod.fsig, min=0}) ---@diagnostic disable-line
+    section.set_slot(6, {value=rod.sfsig, min=0}) ---@diagnostic disable-line
+    section.set_slot(7, {value=rod.ffsig, min=0}) ---@diagnostic disable-line
+    section.set_slot(8, {value=rod.dfsig, min=0}) ---@diagnostic disable-line
+end
 
 ---@param rod FuelRod
 local function pause_rod(rod)
@@ -487,6 +501,7 @@ local function pause_rod(rod)
     rod.efficiency = 0
     rod.power = 0
     rod.interface.set_heat_setting{mode="add", temperature=0}
+    rods.clear_circuits(rod)
 end
 
 ---@param rod FuelRod
@@ -501,11 +516,12 @@ end
 function rods.meltdown(rod)
     if rod.reactor then
         if not rod.reactor.melting_down then
+            local fuel_rods = rod.reactor.fuel_rods
             rod.reactor.melting_down = true
-            for _, fuel_rod in pairs(rod.reactor.fuel_rods) do
+            rods.destroy_reactor(rod.reactor)
+            for _, fuel_rod in pairs(fuel_rods) do
                 rods.meltdown(fuel_rod)
             end
-            rods.destroy_reactor(rod.reactor)
         end
     end
     rod.entity.destroy()
@@ -601,14 +617,14 @@ function rods.update_fuel_rod(rod)
     rod.in_fast_flux = in_fast
     local character = Formula.characteristics[rod.fuel.character_name]
     local out_slow, out_fast = character.flux(in_slow, in_fast, temperature)
-    local power = character.power(in_slow, in_fast, temperature)
-    local efficiency = character.efficiency(in_slow, in_fast, temperature)
+    local power = character.power(out_slow, out_fast, temperature)
+    local efficiency = character.efficiency(out_slow, out_fast, temperature)
     rod.slow_flux = out_slow
     rod.fast_flux = out_fast
     rod.power = power
     rod.efficiency = efficiency
     fuel.fuel_remaining = fuel.fuel_remaining - power / efficiency
-    rod.interface.set_heat_setting{type="add", temperature=power / heat_interface_capacity}
+    rod.interface.set_heat_setting{type="add", temperature=power / heat_interface_capacity / 60}
     if fuel.fuel_remaining < 0 then
         fuel.fuel_remaining = 0
     end
@@ -637,6 +653,9 @@ function rods.update_fuel_rod(rod)
         ::fullbreak::
     end
     if rod.networked and rod.csection then
+        if not rod.csection.valid then
+            rod.csection = rod.entity.get_control_behavior()--[[@as LuaConstantCombinatorControlBehavior]].add_section()
+        end
         local section = rod.csection --[[@as LuaLogisticSection]]
         section.set_slot(1, {value={type="item", name="fuel-rod", quality="normal"}, min=1})
         section.set_slot(2, {value=rod.tsig, min=math.min(temperature, 1000000)}) ---@diagnostic disable-line
@@ -702,8 +721,12 @@ function rods.update_reactor(reactor)
             reactor.insertions[controller.group].val = math.min(math.max(controller.insertion / 1000, 0), 1)
         end
     end
-    for _, rod in pairs(reactor.fuel_rods) do
+    local fuel_rods = reactor.fuel_rods
+    for _, rod in pairs(fuel_rods) do
         rods.update_fuel_rod(rod)
+        if reactor.melting_down then
+            break
+        end
     end
     for _, control_rod in pairs(reactor.control_rods) do
         rods.update_control_rod(control_rod)
@@ -961,6 +984,13 @@ local function distance_sqr(p1, p2)
     return (p1.x - p2.x)^2+(p1.y - p2.y)^2
 end
 
+---@param p1 MapPosition
+---@param p2 MapPosition
+---@return number
+local function distance(p1,p2)
+    return math.sqrt((p1.x - p2.x)^2+(p1.y - p2.y)^2)
+end
+
 ---@param reactor Reactor
 function rods.create_affectors(reactor)
     local function matches_reactor_filter(entity)
@@ -990,7 +1020,7 @@ function rods.create_affectors(reactor)
                 end
                 if owner.type == "fuel" then
                     ---@cast owner FuelRod
-                    if distance_sqr(owner.entity.position, rod.entity.position) <= owner.affectable_distance then
+                    if distance(owner.entity.position, rod.entity.position) <= owner.affectable_distance then
                         table.insert(affects, {affects=owner, control_rods=visited_control_rods, conversion=rods.get_moderation_from_moderators(visited_moderators)}--[[@as Affects]])
                         visited_control_rods = {}
                     end
@@ -1039,6 +1069,7 @@ function rods.deactivate_fuel_rod(rod)
             rod.reactor.need_waste = rod.reactor.need_waste - 1
         end
     end
+    rods.clear_circuits(rod)
 end
 
 ---@param reactor Reactor
