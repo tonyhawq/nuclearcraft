@@ -171,6 +171,57 @@ data:extend({
 
 data:extend({
     {
+        type = "simple-entity",
+        name = "open-fuel-rod",
+        icon = "__nuclearcraft__/graphics/entity/base-rod.png",
+        flags = {"placeable-neutral"},
+        minable = {mining_time=5},
+        subgroup = "storage-remnants",
+        max_health = 2000,
+        resistances = {
+            {
+                type = "explosion",
+                percent = 100,
+            },
+            {
+                type = "physical",
+                percent = 100,
+            },
+            {
+                type = "fire",
+                percent = 100,
+            },
+            {
+                type = "acid",
+                percent = 100,
+            },
+            {
+                type = "electric",
+                percent = 100,
+            },
+            {
+                type = "laser",
+                percent = 100,
+            },
+        },
+        order = "a-b-a",
+        collision_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        selectable_in_game = true,
+        picture =
+        {
+            filename = "__nuclearcraft__/graphics/entity/rod-remnants.png",
+            line_length = 1,
+            width = 75,
+            height = 75,
+            direction_count = 1,
+            shift = util.by_pixel(0, 0),
+            scale = 0.5
+        }
+    },
+})
+data:extend({
+    {
         type = "corpse",
         name = "rod-remnants",
         icon = "__nuclearcraft__/graphics/entity/base-rod.png",

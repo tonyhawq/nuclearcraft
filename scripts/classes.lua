@@ -42,7 +42,18 @@
 ---@field from string[]
 ---@field item string
 
+
+---@class (exact) OpenFuelRod
+---@field id integer
+---@field entity LuaEntity
+---@field smoke_source LuaEntity?
+
 ---@class (exact) FuelRod
+---@field smoke_source LuaEntity?
+---@field force LuaForce
+---@field position MapPosition
+---@field surface LuaSurface
+---@field melted_down boolean?
 ---@field wants_fuel string?
 ---@field wants_min number?
 ---@field wants_max number?

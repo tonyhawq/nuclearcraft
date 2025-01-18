@@ -49,6 +49,7 @@ function rods.setup()
     storage.moderators = storage.moderators or {} --[[@as table<Moderator>]]
     storage.reactors = storage.reactors or {} --[[@as table<Reactor>]]
     storage.controllers = storage.controllers or {} --[[@as table<Controller>]]
+    storage.open_rods = storage.open_rods or {} --[[@as table<OpenFuelRod>]]
     storage.last_reactor_id = storage.last_reactor_id or 0
 end
 
@@ -128,6 +129,9 @@ function rods.on_fuel_rod_built(entity)
         ffsig = Rods.default_signal.ffsig,
         dfsig = Rods.default_signal.dfsig,
         networked = false,
+        force = entity.force --[[@as LuaForce]],
+        position = entity.position,
+        surface = entity.surface,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
     rods.create_connector(connector, fuel_rod)
@@ -318,7 +322,27 @@ function rods.on_destroyed(event)
         if rod.heat_pipe and rod.heat_pipe.valid then
             rod.heat_pipe.destroy()
         end
+        if rod.melted_down then
+            local open_rod = rod.surface.create_entity{
+                name = "open-fuel-rod",
+                position = rod.position,
+                force = rod.force,
+            }
+            if open_rod then
+                local open_id = script.register_on_object_destroyed(open_rod)
+                storage.open_rods[open_id] = {
+                    id = open_id,
+                    entity = open_rod,
+                    smoke_source = rod.smoke_source
+                }
+            end
+        end
         storage.rods[id] = nil
+    elseif storage.open_rods[id] then
+        local rod = storage.open_rods[id]
+        if rod.smoke_source and rod.smoke_source.valid then
+            rod.smoke_source.destroy()
+        end
     elseif storage.reflectors[id] then
         local reflector = storage.reflectors[id] --[[@as Reflector]]
         if reflector.reactor then
@@ -526,6 +550,7 @@ function rods.meltdown(rod)
     local position = nil
     local force = nil
     local reactor = rod.reactor
+    rod.melted_down = true
     if rod.entity.valid then
         surface = rod.entity.surface
         position = rod.entity.position
@@ -589,15 +614,15 @@ function rods.meltdown(rod)
                 force = game.forces.enemy,
                 target = position
             })
-            table.insert(rod.reactor.queued_spawns, {
+            rod.smoke_source = surface.create_entity{
                 name="nuclear-long-lasting-smoke-source",
                 position = position,
-            })
+            }
         elseif math.random(0, 5) == 0 then
-            table.insert(rod.reactor.queued_spawns, {
+            rod.smoke_source = surface.create_entity{
                 name="nuclear-long-lasting-smoke-source",
                 position = position,
-            })
+            }
         end
         table.insert(rod.reactor.queued_spawns, {
             name="rod-meltdown-explosion",
@@ -711,10 +736,7 @@ function rods.update_fuel_rod(rod)
     rod.power = power
     rod.efficiency = efficiency
     fuel.fuel_remaining = fuel.fuel_remaining - power / efficiency
-    rod.interface.set_heat_setting{type="add", temperature=power / heat_interface_capacity / 60}
-    if fuel.fuel_remaining < 0 then
-        fuel.fuel_remaining = 0
-    end
+    rod.interface.set_heat_setting{mode="add", temperature=power / heat_interface_capacity / 60}
     for _, dir in pairs(rod.affects) do
         local sf = out_slow / 4
         local ff = out_fast / 4
