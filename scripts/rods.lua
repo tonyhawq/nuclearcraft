@@ -85,7 +85,8 @@ function rods.on_fuel_rod_built(entity)
         error("Could not construct connector for fuel rod "..tostring(entity.name))
     end
     local interface = entity.surface.create_entity{name=rods.heat_interface_name, position=entity.position, force=entity.force}
-    local section = ((entity--[[@as LuaEntity]]).get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]).add_section()
+    local control_behaviour = (entity--[[@as LuaEntity]]).get_control_behavior()
+    local section = (control_behaviour --[[@as LuaConstantCombinatorControlBehavior]]).get_section(1) or (control_behaviour --[[@as LuaConstantCombinatorControlBehavior]]).add_section()
     local id = script.register_on_object_destroyed(entity)
     local fuel_rod = {
         fuel = nil,
@@ -126,6 +127,13 @@ function rods.on_fuel_rod_built(entity)
         networked = false,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
+    fuel_rod.csection.clear_slot(1)
+    fuel_rod.csection.clear_slot(2)
+    fuel_rod.csection.clear_slot(3)
+    fuel_rod.csection.clear_slot(4)
+    fuel_rod.csection.clear_slot(5)
+    fuel_rod.csection.clear_slot(6)
+    fuel_rod.csection.clear_slot(7)
     rods.create_connector(connector, fuel_rod)
 end
 
@@ -1184,6 +1192,11 @@ function rods.on_paste_rod(from, to)
     to.wants_fuel = from.wants_fuel
     to.wants_min = from.wants_min
     to.wants_max = from.wants_max
+    local behaviour = to.entity.get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]
+    while behaviour.sections_count > 0 do
+        behaviour.remove_section(1)
+    end
+    behaviour.add_section()
     local choose_signal_buttons = RodGUI.choose_signal_buttons
     local choose_signal_button_count = RodGUI.signal_button_count
     for i = 1, choose_signal_button_count do
