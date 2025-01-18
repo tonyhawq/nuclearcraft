@@ -1,34 +1,6 @@
 data:extend({
     {
         type = "item",
-        name = "low-enriched-uranium-fuel-cell",
-        icons = {
-            {
-                icon = "__nuclearcraft__/graphics/icons/low-enriched-uranium-fuel-cell.png",
-                icon_size = 64,
-            }
-        },
-        subgroup = "uranium-processing",
-        order = "b[uranium-products]-a[uranium-fuel-cell]",
-        stack_size = 50,
-    },
-    {
-        type = "item",
-        name = "depleted-low-enriched-uranium-fuel-cell",
-        icons = {
-            {
-                icon = "__nuclearcraft__/graphics/icons/depleted-low-enriched-uranium-fuel-cell.png",
-                icon_size = 64,
-            }
-        },
-        subgroup = "uranium-processing",
-        order = "b[uranium-products]-a[uranium-fuel-cell]",
-        stack_size = 50,
-    },
-})
-data:extend({
-    {
-        type = "item",
         name = "fuel-rod",
         icons = {
             {
