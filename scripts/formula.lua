@@ -32,6 +32,7 @@ formula.characteristics = {
         max_slow_flux = 40,
         max_efficiency = 15,
         max_power = 40,
+        name = "uranium",
     },
 }
 

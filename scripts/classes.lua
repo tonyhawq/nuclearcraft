@@ -13,6 +13,7 @@
 ---@field max_fast_flux number
 ---@field max_efficiency number
 ---@field max_power number
+---@field name string
 
 ---@class (exact) Connector
 ---@field entity LuaEntity

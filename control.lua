@@ -4,6 +4,7 @@ Rods = require("__nuclearcraft__.scripts.rods")
 InterfaceGUI = require("__nuclearcraft__.scripts.interface-gui")
 RodGUI = require("__nuclearcraft__.scripts.rod-gui")
 ControlRodGUI = require("__nuclearcraft__.scripts.control-rod-gui")
+require("__nuclearcraft__.scripts.remote")
 
 script.on_init(function()
     Rods.setup()
