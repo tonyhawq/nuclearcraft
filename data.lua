@@ -16,6 +16,7 @@ local function apply_flags(thing)
 end
 circuit_interface.name = "nc-circuit-interface"
 circuit_interface.sprites = nil
+circuit_interface.minable = nil
 heat_interface.collision_box = {{-0.5, -0.5}, {0.5, 0.5}}
 heat_interface.name = "nc-fuel-rod-heat"
 heat_interface.heat_buffer.specific_heat = "1MJ"

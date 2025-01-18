@@ -316,6 +316,9 @@ function rods.on_destroyed(event)
         if rod.interface and rod.interface.valid then
             rod.interface.destroy()
         end
+        if rod.circuit and rod.circuit.valid then
+            rod.circuit.destroy()
+        end
         if rod.connector and rod.connector.valid then
             rod.connector.destroy()
         end
