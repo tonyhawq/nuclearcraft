@@ -483,17 +483,20 @@ end
 ---@param rod FuelRod
 function rods.clear_circuits(rod)
     if not rod.csection.valid then
+        if not rod.entity.valid then
+            return
+        end
         rod.csection = rod.entity.get_control_behavior()--[[@as LuaConstantCombinatorControlBehavior]].add_section()
     end
     local section = rod.csection --[[@as LuaLogisticSection]]
-    section.set_slot(1, {value={type="item", name="fuel-rod", quality="normal"}, min=0})
-    section.set_slot(2, {value=rod.tsig, min=0}) ---@diagnostic disable-line
-    section.set_slot(3, {value=rod.psig, min=0}) ---@diagnostic disable-line
-    section.set_slot(4, {value=rod.esig, min=0}) ---@diagnostic disable-line
-    section.set_slot(5, {value=rod.fsig, min=0}) ---@diagnostic disable-line
-    section.set_slot(6, {value=rod.sfsig, min=0}) ---@diagnostic disable-line
-    section.set_slot(7, {value=rod.ffsig, min=0}) ---@diagnostic disable-line
-    section.set_slot(8, {value=rod.dfsig, min=0}) ---@diagnostic disable-line
+    section.clear_slot(1)
+    section.clear_slot(2)
+    section.clear_slot(3)
+    section.clear_slot(4)
+    section.clear_slot(5)
+    section.clear_slot(6)
+    section.clear_slot(7)
+    section.clear_slot(8)
 end
 
 ---@param rod FuelRod
@@ -518,15 +521,95 @@ end
 
 ---@param rod FuelRod
 function rods.meltdown(rod)
+    local is_source = false
+    local surface = nil
+    local position = nil
+    local force = nil
+    local reactor = rod.reactor
+    if rod.entity.valid then
+        surface = rod.entity.surface
+        position = rod.entity.position
+        force = rod.entity.force
+    end
     if rod.reactor then
         if not rod.reactor.melting_down then
+            is_source = true
             local fuel_rods = rod.reactor.fuel_rods
+            rod.reactor.meltdown_source_pos = position
             rod.reactor.melting_down = true
-            rods.destroy_reactor(rod.reactor)
             for _, fuel_rod in pairs(fuel_rods) do
-                rods.meltdown(fuel_rod)
+                if fuel_rod.id ~= rod.id then
+                   rods.meltdown(fuel_rod)
+                end
             end
         end
+    end
+    if surface then
+        ---@cast position MapPosition
+        local xvel = (math.random(-100, 100)) / 600
+        local sign = ((xvel > 0) and 1) or -1
+        if reactor and reactor.meltdown_source_pos then
+            if math.abs(position.x - reactor.meltdown_source_pos.x) > 0.1 then
+                xvel = (position.x - reactor.meltdown_source_pos.x) / 10 + math.random(-100, 100) / 1200
+            end
+        end
+        Remnants.spawn(
+            surface,
+            "entity.fuel-rod",
+            position.x,
+            position.y,
+            xvel,
+            (math.random(-100, 100)) / 600,
+            (math.random() - 0.5) / 2 + 0.5,
+            0,
+            math.random() / 20 * sign,
+            "cap-landed-explosion",
+            force --[[@as LuaForce]]
+        )
+        for i = 1, math.random(1, 5) do
+            Remnants.spawn(
+            surface,
+            "entity.small-remnants",
+            position.x,
+            position.y,
+            (math.random(-100, 100)) / 600,
+            (math.random() - 0.5) / 20,
+            math.random() / 10 + 0.5,
+            0,
+            math.random() / 20,
+            "cap-landed-explosion",
+            force --[[@as LuaForce]],
+            {x_scale = math.random(2, 4) / 8, y_scale = math.random(2, 4) / 8}
+        )
+        end
+        if is_source then
+            table.insert(rod.reactor.queued_spawns, {
+                name="atomic-rocket",
+                position = position,
+                force = game.forces.enemy,
+                target = position
+            })
+            table.insert(rod.reactor.queued_spawns, {
+                name="nuclear-long-lasting-smoke-source",
+                position = position,
+            })
+        elseif math.random(0, 5) == 0 then
+            table.insert(rod.reactor.queued_spawns, {
+                name="nuclear-long-lasting-smoke-source",
+                position = position,
+            })
+        end
+        table.insert(rod.reactor.queued_spawns, {
+            name="rod-meltdown-explosion",
+            position = position,
+            force = game.forces.enemy,
+        })
+    end
+    if is_source then
+        for _, queued_spawn in pairs(rod.reactor.queued_spawns) do
+            rod.reactor.surface.create_entity(queued_spawn)
+        end
+        rods.destroy_reactor(rod.reactor)
     end
     rod.entity.destroy()
 end
@@ -904,6 +987,8 @@ function rods.create_reactor(source)
         add_cscore = 0,
         iscore = 0,
         add_iscore = 0,
+        queued_spawns = {},
+        surface = source.entity.surface
     } --[[@as Reactor]]
     rods.add_connector_to_reactor[source.type](storage.connectors[source.connector.unit_number], reactor)
     local is_valid_reactor = true

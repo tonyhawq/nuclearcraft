@@ -192,3 +192,22 @@
 ---@field k number?
 ---@field ck number?
 ---@field ik number?
+---@field surface LuaSurface
+---@field queued_spawns table[]
+---@field meltdown_source_pos MapPosition?
+
+---@class Debris
+---@field sprite SpritePath
+---@field rotation number
+---@field rotation_speed number
+---@field x number
+---@field xv number
+---@field y number
+---@field yv number
+---@field z number
+---@field zv number
+---@field landed_entity string?
+---@field force (string|LuaForce)?
+---@field render LuaRenderObject
+---@field surface LuaSurface
+---@field ttl number

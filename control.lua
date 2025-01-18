@@ -4,11 +4,13 @@ Rods = require("__nuclearcraft__.scripts.rods")
 InterfaceGUI = require("__nuclearcraft__.scripts.interface-gui")
 RodGUI = require("__nuclearcraft__.scripts.rod-gui")
 ControlRodGUI = require("__nuclearcraft__.scripts.control-rod-gui")
+Remnants = require("__nuclearcraft__.scripts.remnants")
 require("__nuclearcraft__.scripts.remote")
 
 script.on_init(function()
     Rods.setup()
     Schedule.setup()
+    Remnants.setup()
 end)
 
 script.on_nth_tick(15, function (_)
@@ -22,9 +24,11 @@ end)
 script.on_configuration_changed(function()
     Rods.setup()
     Schedule.setup()
+    Remnants.setup()
 end)
 
 script.on_event(defines.events.on_tick, function(event)
+    Remnants.update()
     for _, reactor in pairs(storage.reactors) do
         ---@cast reactor Reactor
         if next(reactor.fuel_rods) then
@@ -55,7 +59,7 @@ script.on_event(defines.events.on_tick, function(event)
             end
             reactor.score = score
         end
-        if next(reactor.control_rods) then
+        if not reactor.melting_down and next(reactor.control_rods) then
             local score = reactor.cscore
             score = score + reactor.add_cscore
             if score > 0 then
@@ -72,7 +76,7 @@ script.on_event(defines.events.on_tick, function(event)
             end
             reactor.cscore = score
         end
-        if reactor.group_controllers then
+        if not reactor.melting_down and reactor.group_controllers then
             local score = reactor.iscore
             score = score + reactor.add_iscore
             if score > 0 then
@@ -95,6 +99,8 @@ end)
 script.on_event(defines.events.on_script_trigger_effect, function(event)
     if event.effect_id == "built" then
         Rods.on_built(event.source_entity)
+    elseif event.effect_id == "cap-land" then
+        Remnants.on_cap_land(event.source_entity)
     end
 end)
 

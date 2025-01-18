@@ -169,6 +169,36 @@ data:extend({
     },
 })
 
+data:extend({
+    {
+        type = "corpse",
+        name = "rod-remnants",
+        icon = "__nuclearcraft__/graphics/entity/base-rod.png",
+        hidden_in_factoriopedia = true,
+        flags = {"placeable-neutral", "building-direction-8-way", "not-on-map"},
+        subgroup = "storage-remnants",
+        order = "a-b-a",
+        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+        tile_width = 1,
+        tile_height = 1,
+        selectable_in_game = false,
+        time_before_removed = 60 * 60 * 15, -- 15 minutes
+        expires = false,
+        final_render_layer = "remnants",
+        remove_on_tile_placement = false,
+        animation =
+        {
+            filename = "__nuclearcraft__/graphics/entity/rod-remnants.png",
+            line_length = 1,
+            width = 75,
+            height = 75,
+            direction_count = 1,
+            shift = util.by_pixel(0, 0),
+            scale = 0.5
+        }
+    },
+})
+
 local function make_composite(thing)
     thing.created_effect = {
         type = "direct",

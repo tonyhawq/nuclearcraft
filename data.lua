@@ -32,6 +32,7 @@ apply_flags(circuit_interface)
 data:extend({heat_interface, heat_pipe, connector, circuit_interface})
 
 
+require("prototypes.projectiles")
 require("prototypes.entity")
 require("prototypes.signal")
 require("prototypes.recipe")
