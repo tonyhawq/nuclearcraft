@@ -14,6 +14,7 @@
 ---@field max_efficiency number
 ---@field max_power number
 ---@field name string
+---@field self_starting boolean
 
 ---@class (exact) Connector
 ---@field entity LuaEntity
@@ -222,3 +223,23 @@
 ---@field render LuaRenderObject
 ---@field surface LuaSurface
 ---@field ttl number
+
+---@class (exact) Spec.FuelRod
+---@field name string
+---@field slow_cross_section number
+---@field fast_cross_section number
+---@field affectable_distance number
+
+---@class (exact) Spec.Moderator
+---@field name string
+---@field conversion number
+
+---@class (exact) Spec.Reflector
+---@field reflection_distance number
+---@field bounce_limit number
+---@field scattering number
+
+---@class (exact) Spec.Source
+---@field efficiency_penalty number
+---@field slow_flux number
+---@field fast_flux number

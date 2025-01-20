@@ -132,8 +132,13 @@ function rods.on_fuel_rod_built(entity)
         force = entity.force --[[@as LuaForce]],
         position = entity.position,
         surface = entity.surface,
+        fast_window = {},
+        slow_window = {},
+        fws = 2,
+        sws = 2,
     } --[[@as FuelRod]]
     storage.rods[id] = fuel_rod
+    fuel_rod.interface.set_heat_setting{mode="add", temperature=0}
     rods.create_connector(connector, fuel_rod)
 end
 
@@ -728,16 +733,42 @@ function rods.update_fuel_rod(rod)
             end
         end
     end
-    rod.in_slow_flux = in_slow
-    rod.in_fast_flux = in_fast
+    --[[
+    local sws = rod.sws
+    local fws = rod.fws
+    local fw = rod.fast_window
+    local sw = rod.slow_window
+    local sw_average = 0
+    local fw_average = 0
+    for i = 2, sws do
+        local val = sw[i - 1] or 0
+        sw[i] = val
+        sw_average = sw_average + val
+    end
+    sw[1] = in_slow
+    sw_average = (sw_average + in_slow) / sws
+    
+    for i = 2, fws do
+        local val = fw[i - 1] or 0
+        fw[i] = val
+        fw_average = fw_average + val
+    end
+    fw[1] = in_fast
+    fw_average = (fw_average + in_fast) / fws
+]]
+    rod.in_slow_flux = (rod.in_slow_flux + in_slow) / 2
+    rod.in_fast_flux = (rod.in_fast_flux + in_fast) / 2
     local character = Formula.characteristics[rod.fuel.character_name]
     local out_slow, out_fast = character.flux(in_slow, in_fast, temperature)
     local power = character.power(out_slow, out_fast, temperature)
     local efficiency = character.efficiency(out_slow, out_fast, temperature)
+    local last_slow = rod.slow_flux
+    local last_fast = rod.fast_flux
     rod.slow_flux = out_slow
     rod.fast_flux = out_fast
     rod.power = power
     rod.efficiency = efficiency
+    rod.delta_flux = out_slow + out_fast - last_slow - last_fast
     fuel.fuel_remaining = fuel.fuel_remaining - power / efficiency
     rod.interface.set_heat_setting{mode="add", temperature=power / heat_interface_capacity / 60}
     for _, dir in pairs(rod.affects) do
@@ -1038,8 +1069,8 @@ function rods.create_reactor(source)
     local fuel_rods = table_size(reactor.fuel_rods)
     local control_rods = table_size(reactor.control_rods)
     reactor.add_score = math.max(fuel_rods, 1) / 60
-    reactor.add_cscore = math.max(control_rods, 1) / 60
-    reactor.add_iscore = math.max(table_size(reactor.controllers), 1) / 60
+    reactor.add_cscore = math.max(control_rods, 1) / 15
+    reactor.add_iscore = math.max(table_size(reactor.controllers), 1) / 15
 end
 
 ---@param entity LuaEntity

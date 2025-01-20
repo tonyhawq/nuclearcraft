@@ -13,7 +13,7 @@ local mlog = math.log
 formula.characteristics = {
     ["uranium"] = {
         flux = function (s, f, t)
-            local output = 2*s
+            local output = max(2.5*s, 0.1)
             return min(output * 0.1, fmax), min(output * 0.9, fmax)
         end,
         power = function (slow_flux, fast_flux)
@@ -33,6 +33,7 @@ formula.characteristics = {
         max_efficiency = 15,
         max_power = 40,
         name = "uranium",
+        self_starting = true,
     },
 }
 

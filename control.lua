@@ -35,6 +35,12 @@ script.on_event(defines.events.on_tick, function(event)
             local score = reactor.score
             score = score + reactor.add_score
             if score > 0 then
+                for _, controller in pairs(reactor.controllers) do
+                    Rods.update_controller(controller)
+                end
+                for _, control_rod in pairs(reactor.control_rods) do
+                    Rods.update_control_rod(control_rod)
+                end
                 reactor.fuels = {}
                 reactor.dumps = {}
                 if reactor.need_fuel > 0 and next(reactor.inputs) then
@@ -59,10 +65,14 @@ script.on_event(defines.events.on_tick, function(event)
             end
             reactor.score = score
         end
+        --[[
         if not reactor.melting_down and next(reactor.control_rods) then
             local score = reactor.cscore
             score = score + reactor.add_cscore
             if score > 0 then
+                for _, controller in pairs(reactor.controllers) do
+                    Rods.update_controller(controller)
+                end
                 local k = reactor.ck
                 local v
                 local control_rods = reactor.control_rods
@@ -75,7 +85,8 @@ script.on_event(defines.events.on_tick, function(event)
                 reactor.ck = k
             end
             reactor.cscore = score
-        end
+        end]]
+        --[[
         if not reactor.melting_down and reactor.group_controllers then
             local score = reactor.iscore
             score = score + reactor.add_iscore
@@ -92,7 +103,7 @@ script.on_event(defines.events.on_tick, function(event)
                 reactor.ik = k
             end
             reactor.iscore = score
-        end
+        end]]
     end
 end)
 

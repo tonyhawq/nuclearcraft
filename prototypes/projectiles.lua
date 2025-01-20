@@ -175,8 +175,8 @@ long_lasting_smoke_source.time_to_live = 60 * 60 * 20
 long_lasting_smoke_source.smoke[1].name = "long-nuclear-fire-smoke"
 local long_nuclear_fire_smoke = table.deepcopy(data.raw["trivial-smoke"]["fire-smoke"])
 long_nuclear_fire_smoke.name = "long-nuclear-fire-smoke"
-long_nuclear_fire_smoke.duration = 60 * 90
-long_nuclear_fire_smoke.fade_away_duration = 60 * 30
-long_nuclear_fire_smoke.spread_duration = 60 * 60
+long_nuclear_fire_smoke.duration = 60 * 45
+long_nuclear_fire_smoke.fade_away_duration = 60 * 10
+long_nuclear_fire_smoke.spread_duration = 60 * 25
 long_nuclear_fire_smoke.end_scale = 2
 data:extend({long_lasting_smoke_source, long_nuclear_fire_smoke})
