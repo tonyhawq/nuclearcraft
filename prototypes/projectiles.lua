@@ -180,3 +180,29 @@ long_nuclear_fire_smoke.fade_away_duration = 60 * 10
 long_nuclear_fire_smoke.spread_duration = 60 * 25
 long_nuclear_fire_smoke.end_scale = 2
 data:extend({long_lasting_smoke_source, long_nuclear_fire_smoke})
+data:extend({
+    {
+        type = "particle-source",
+        name = "cooling-tower-smoke-source",
+        selectable_in_game = false,
+        collision_mask = {layers={}},
+        collision_box = {{-0.5,-0.5,}, {0.5,0.5}},
+        selection_box = {{-0.5,-0.5,}, {0.5,0.5}},
+        time_to_live = 60 * 60 * 60 * 60,
+        vertical_speed = 1,
+        horizontal_speed = 0,
+        time_before_start = 0,
+        duration = 60 * 50,
+        fade_away_duration = 60 * 10,
+        spread_duration = 60 * 40,
+        height = 0,
+        smoke = {
+            {
+                name = "turbine-smoke",
+                frequency = 1 / 30,
+            }
+        },
+        vertical_speed_deviation = 0.2,
+        horizontal_speed_deviation = 0.1,
+    }
+})

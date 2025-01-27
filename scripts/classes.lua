@@ -224,6 +224,11 @@
 ---@field surface LuaSurface
 ---@field ttl number
 
+---@class (exact) CoolingTower
+---@field id number
+---@field entity LuaEntity
+---@field smoke LuaEntity?
+
 ---@class (exact) Spec.FuelRod
 ---@field name string
 ---@field slow_cross_section number

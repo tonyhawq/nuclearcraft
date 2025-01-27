@@ -77,4 +77,14 @@ data:extend({
         order = "a",
         stack_size = 50,
     },
+    {
+        type = "item",
+        name = "cooling-tower",
+        icon = "__nuclearcraft__/graphics/icons/cooling-tower.png",
+        icon_size = 32,
+        subgroup = "energy",
+        order = "b[steam-power]-d[cooling-tower]",
+        place_result = "cooling-tower",
+        stack_size = 10,
+      },
 })

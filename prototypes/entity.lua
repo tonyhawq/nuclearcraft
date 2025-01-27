@@ -182,6 +182,7 @@ data:extend({
         minable = {mining_time=5},
         subgroup = "storage-remnants",
         max_health = 2000,
+        created_smoke = nil,
         resistances = {
             {
                 type = "explosion",
@@ -273,3 +274,100 @@ make_composite(data.raw.container["moderator-rod"])
 make_composite(data.raw.container["source-rod"])
 make_composite(data.raw.container["reflector-rod"])
 make_composite(data.raw.container["reactor-interface"])
+
+data:extend({
+    {
+        type = "recipe-category",
+        name = "water-cooling",
+    }
+})
+
+data:extend({
+    {
+        type = "furnace",
+        name = "cooling-tower",
+        icon = "__nuclearcraft__/graphics/icons/cooling-tower.png",
+        icon_size = 32,
+        flags = {"placeable-neutral", "placeable-player", "player-creation"},
+        minable = {hardness = 0.2, mining_time = 0.5, result = "cooling-tower"},
+        max_health = 500,
+        corpse = "medium-remnants",
+        icon_draw_specification = {scale = 0},
+        resistances =
+        {
+            {
+                type = "fire",
+                percent = 70
+            }
+        },
+        collision_box = {{-1.3, -1.3}, {1.3, 1.3}},
+        selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
+        drawing_box = {{-1.5, -1.5}, {1.5, 1.5}},
+        fluid_boxes =
+        {
+            {
+                production_type = "input",
+                volume = 1000,
+                pipe_covers = pipecoverspictures(),
+                pipe_connections =
+                {
+                    {flow_direction="input", direction = defines.direction.west, position = {-1, -1}},  --{position = {-2, -1},type = "input"},
+                    {flow_direction="input", direction = defines.direction.west, position = {-1, 1}},   --{position = {-2, 1},type = "input"},
+                    {flow_direction="input", direction = defines.direction.north, position = {-1, -1}}, --{position = {-1, -2},type = "input"},
+                    {flow_direction="input", direction = defines.direction.south, position = {-1, 1}}   --{position = {-1, 2},type = "input"}
+                }
+            },
+            {
+                production_type = "output",
+                volume = 1000,
+                pipe_covers = pipecoverspictures(),
+                pipe_connections =
+                {
+                    {flow_direction="output", direction = defines.direction.north, position = {1, -1}}, --{position = {1, -2},type = "output"},
+                    {flow_direction="output", direction = defines.direction.south, position = {1, 1}},  --{position = {1, 2},type = "output"},
+                    {flow_direction="output", direction = defines.direction.east, position = {1, -1}},  --{position = {2, -1},type = "output"},
+                    {flow_direction="output", direction = defines.direction.east, position = {1, 1}}    --{position = {2, 1},type = "output"}
+                }
+            }
+        },
+        source_inventory_size = 0,
+        result_inventory_size = 0,
+        crafting_categories = {"water-cooling"},
+        energy_usage = "230kW",
+        crafting_speed = 1,
+        energy_source =
+        {
+            type = "electric",
+            usage_priority = "primary-input",
+            emissions = 0,
+            drain = "20kW",
+        },
+        graphics_set =
+        {
+            animation =
+            {
+                layers=
+                {
+                    {
+                        filename = "__nuclearcraft__/graphics/entity/cooling-tower-hr.png",
+                        width = 308,
+                        height = 310,
+                        frame_count = 1,
+                        shift = {0.695, -0.66},
+                        scale = 0.505
+                    },
+                    {
+                        filename = "__nuclearcraft__/graphics/entity/cooling-tower-hr-shadow.png",
+                        width = 308,
+                        height = 310,
+                        frame_count = 1,
+                        shift = {0.695, -0.66},
+                        scale = 0.505,
+                        draw_as_shadow = true,
+                    }
+                }
+            }
+        }
+    }
+})
+make_composite(data.raw.furnace["cooling-tower"])

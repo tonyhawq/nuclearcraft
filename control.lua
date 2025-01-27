@@ -5,12 +5,14 @@ InterfaceGUI = require("__nuclearcraft__.scripts.interface-gui")
 RodGUI = require("__nuclearcraft__.scripts.rod-gui")
 ControlRodGUI = require("__nuclearcraft__.scripts.control-rod-gui")
 Remnants = require("__nuclearcraft__.scripts.remnants")
+Cooling = require("__nuclearcraft__.scripts.cooling-towers")
 require("__nuclearcraft__.scripts.remote")
 
 script.on_init(function()
     Rods.setup()
     Schedule.setup()
     Remnants.setup()
+    Cooling.setup()
 end)
 
 script.on_nth_tick(15, function (_)
@@ -25,10 +27,12 @@ script.on_configuration_changed(function()
     Rods.setup()
     Schedule.setup()
     Remnants.setup()
+    Cooling.setup()
 end)
 
 script.on_event(defines.events.on_tick, function(event)
     Remnants.update()
+    Cooling.update()
     for _, reactor in pairs(storage.reactors) do
         ---@cast reactor Reactor
         if next(reactor.fuel_rods) then
@@ -110,6 +114,7 @@ end)
 script.on_event(defines.events.on_script_trigger_effect, function(event)
     if event.effect_id == "built" then
         Rods.on_built(event.source_entity)
+        Cooling.on_built(event.source_entity)
     elseif event.effect_id == "cap-land" then
         Remnants.on_cap_land(event.source_entity)
     end
@@ -117,6 +122,7 @@ end)
 
 script.on_event(defines.events.on_object_destroyed, function(event)
     Rods.on_destroyed(event)
+    Cooling.on_destroyed(event)
 end)
 
 script.on_event(defines.events.on_entity_settings_pasted, function(event)

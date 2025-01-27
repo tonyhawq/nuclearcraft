@@ -76,5 +76,24 @@ data:extend({
             {type="item", name="reactor-interface", amount=1}
         }
     },
-    
+    {
+        type = "recipe",
+        name = "nc-steam-cooling",
+        category = "water-cooling",
+        enabled = true,
+        hidden = true,
+        energy_required = 0.1,
+        ingredients =
+        {
+            {type="fluid", name="steam", amount=30}
+        },
+        results =
+        {
+            {type="fluid", name="water", amount=3}
+        },
+        icon = "__base__/graphics/icons/fluid/water.png",
+        icon_size = 64,
+        subgroup = "fluid-recipes",
+        order = "z"
+    },
 })
