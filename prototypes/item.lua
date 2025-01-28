@@ -1,5 +1,38 @@
 data:extend({
     {
+        type = "item-subgroup",
+        name = "fuel-cells",
+        group = "intermediate-products",
+        order = "ibb",
+    },
+    {
+        type = "item-subgroup",
+        name = "depleted-fuel-cells",
+        group = "intermediate-products",
+        order = "ibc",
+    },
+    {
+        type = "item-subgroup",
+        name = "isotopes",
+        group = "intermediate-products",
+        order = "iba",
+    },
+    {
+        type = "item-subgroup",
+        name = "fuel-reprocessing",
+        group = "intermediate-products",
+        order = "ibd",
+    },
+    {
+        type = "item-subgroup",
+        name = "reactor-infrastructure",
+        group = "production",
+        order = "bb",
+    },
+})
+
+data:extend({
+    {
         type = "item",
         name = "fuel-rod",
         icons = {
@@ -8,8 +41,8 @@ data:extend({
             }
         },
         place_result = "fuel-rod",
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "reactor-infrastructure",
+        order = "b",
         stack_size = 50,
     },
     {
@@ -21,8 +54,8 @@ data:extend({
             }
         },
         place_result = "control-rod",
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "reactor-infrastructure",
+        order = "c",
         stack_size = 50,
     },
     {
@@ -34,8 +67,8 @@ data:extend({
             }
         },
         place_result = "moderator-rod",
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "reactor-infrastructure",
+        order = "d",
         stack_size = 50,
     },
     {
@@ -47,8 +80,8 @@ data:extend({
             }
         },
         place_result = "source-rod",
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "reactor-infrastructure",
+        order = "e",
         stack_size = 50,
     },
     {
@@ -60,8 +93,8 @@ data:extend({
             }
         },
         place_result = "reflector-rod",
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "reactor-infrastructure",
+        order = "e",
         stack_size = 50,
     },
     {
@@ -73,8 +106,20 @@ data:extend({
             }
         },
         place_result = "reactor-interface",
-        subgroup = "production-machine",
+        subgroup = "reactor-infrastructure",
         order = "a",
+        stack_size = 50,
+    },
+    {
+        type = "item",
+        name = "graphite",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/graphite.png",
+            }
+        },
+        subgroup = "raw-material",
+        order = "a[smelting]-d[graphite]",
         stack_size = 50,
     },
     {
@@ -87,6 +132,12 @@ data:extend({
         place_result = "cooling-tower",
         stack_size = 10,
     },
+})
+data.raw.item["uranium-fuel-cell"].subgroup = "fuel-cells"
+data.raw.item["uranium-fuel-cell"].order = "a"
+data.raw.item["depleted-uranium-fuel-cell"].subgroup = "depleted-fuel-cells"
+data.raw.item["depleted-uranium-fuel-cell"].order = "a"
+data:extend({
     {
         type = "item",
         name = "thorium-fuel-cycle-cell",
@@ -106,8 +157,8 @@ data:extend({
             {"nuclearcraft.not-self-starting"},
             "[item=depleted-thorium-fuel-cycle-cell]",
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "fuel-cells",
+        order = "ab",
         stack_size = 50,
         fuel_value = "12GJ",
         fuel_category = "nuclear",
@@ -132,8 +183,8 @@ data:extend({
             {"nuclearcraft.not-self-starting"},
             "[item=depleted-thorium-fuel-cell]",
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "fuel-cells",
+        order = "ac",
         stack_size = 50,
         fuel_value = "12GJ",
         fuel_category = "nuclear",
@@ -158,8 +209,8 @@ data:extend({
             {"nuclearcraft.self-starting"},
             "[item=depleted-plutonium-fuel-cell]",
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "fuel-cells",
+        order = "ae",
         stack_size = 50,
         fuel_value = "20GJ",
         fuel_category = "nuclear",
@@ -180,12 +231,12 @@ data:extend({
             "nuclearcraft.fuel-description",
             {"nuclearcraft.character-mox-flux"},
             {"nuclearcraft.character-mox-power"},
-            {"nuclearcraft.character-mox-cycle-efficiency"},
+            {"nuclearcraft.character-mox-efficiency"},
             {"nuclearcraft.self-starting"},
             "[item=depleted-mox-fuel-cell]",
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "fuel-cells",
+        order = "ad",
         stack_size = 50,
         fuel_value = "20GJ",
         fuel_category = "nuclear",
@@ -210,8 +261,8 @@ data:extend({
             {"nuclearcraft.self-starting"},
             "[item=depleted-americium-fuel-cell]",
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "fuel-cells",
+        order = "af",
         stack_size = 50,
         fuel_value = "5GJ",
         fuel_category = "nuclear",
@@ -228,8 +279,8 @@ data:extend({
                 icon = "__nuclearcraft__/graphics/icons/depleted-thorium-fuel-cycle-cell-light.png",
             },
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "depleted-fuel-cells",
+        order = "bb",
         stack_size = 50,
     },
     {
@@ -243,8 +294,8 @@ data:extend({
                 icon = "__nuclearcraft__/graphics/icons/depleted-thorium-fuel-cell-light.png",
             },
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "depleted-fuel-cells",
+        order = "bc",
         stack_size = 50,
     },
     {
@@ -258,8 +309,8 @@ data:extend({
                 icon = "__nuclearcraft__/graphics/icons/depleted-plutonium-fuel-cell-light.png",
             },
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "depleted-fuel-cells",
+        order = "be",
         stack_size = 50,
     },
     {
@@ -273,8 +324,8 @@ data:extend({
                 icon = "__nuclearcraft__/graphics/icons/depleted-mox-fuel-cell-light.png",
             },
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "depleted-fuel-cells",
+        order = "bd",
         stack_size = 50,
     },
     {
@@ -288,8 +339,86 @@ data:extend({
                 icon = "__nuclearcraft__/graphics/icons/depleted-americium-fuel-cell-light.png",
             },
         },
-        subgroup = "production-machine",
-        order = "a",
+        subgroup = "depleted-fuel-cells",
+        order = "bf",
+        stack_size = 50,
+    },
+    {
+        type = "item",
+        name = "thorium-232",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/thorium-232.png",
+            },
+        },
+        subgroup = "isotopes",
+        order = "b[thorium]-a",
+        stack_size = 50,
+    },
+})
+data.raw.item["uranium-235"].subgroup = "isotopes"
+data.raw.item["uranium-235"].order = "a[uranium]-a"
+data.raw.item["uranium-238"].subgroup = "isotopes"
+data.raw.item["uranium-238"].order = "a[uranium]-b"
+data:extend({
+    {
+        type = "item",
+        name = "uranium-233",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/uranium-233.png",
+            },
+        },
+        subgroup = "isotopes",
+        order = "a[uranium]-c",
+        stack_size = 50,
+    },
+    {
+        type = "item",
+        name = "uranium-232",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/uranium-232.png",
+            },
+        },
+        subgroup = "isotopes",
+        order = "a[uranium]-d",
+        stack_size = 50,
+    },
+    {
+        type = "item",
+        name = "plutonium-239",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/plutonium-239.png",
+            },
+        },
+        subgroup = "isotopes",
+        order = "c[plutonium]-a",
+        stack_size = 50,
+    },
+    {
+        type = "item",
+        name = "plutonium-240",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/plutonium-240.png",
+            },
+        },
+        subgroup = "isotopes",
+        order = "c[plutonium]-b",
+        stack_size = 50,
+    },
+    {
+        type = "item",
+        name = "americium-241",
+        icons = {
+            {
+                icon = "__nuclearcraft__/graphics/icons/americium-241.png",
+            },
+        },
+        subgroup = "isotopes",
+        order = "d[americium]-a",
         stack_size = 50,
     },
 })
