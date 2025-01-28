@@ -295,7 +295,7 @@ function rod_gui.open(player, entity)
         type = "progressbar",
         name = "total_flux",
         style = "production_progressbar",
-        caption = {"nuclearcraft.number-unit", 0, "Nf"}
+        caption = {"nuclearcraft.number-unit", 0, "η"}
     }
     out_total.style.width = rod_gui.bar_width
     local out_fast_slow_frame = out_frame.add{
@@ -340,7 +340,7 @@ function rod_gui.open(player, entity)
         type = "progressbar",
         name = "total_flux",
         style = "production_progressbar",
-        caption = {"nuclearcraft.number-unit", 0, "Nf"}
+        caption = {"nuclearcraft.number-unit", 0, "η"}
     }
     in_total.style.width = rod_gui.bar_width
     local in_fast_slow_frame = in_frame.add{
@@ -819,14 +819,14 @@ function rod_gui.update(player)
             target_fast +
             target_slow, 1)
         )
-        root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "nF", string.format("%.3f", target_fast + target_slow), "nF"}
+        root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "η", string.format("%.3f", target_fast + target_slow), "η"}
         flux_percentage_out = (rod.slow_flux + rod.fast_flux) / (character.max_slow_flux + character.max_fast_flux)
     else
 
     end
     rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
     rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
-    root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "nF"}
+    root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "η"}
     if rod.power > 0 then
         root.flow.frame.power.value = rod.power / (character or {max_power = 40}).max_power
         root.flow.frame.burnup.value = rod.power / rod.efficiency / rod.power
@@ -866,7 +866,7 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
         fast_flux = rod.fast_flux
     end
     flux_root.total_flux.value = 0
-    flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "nF"}
+    flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "η"}
     if fast_flux + slow_flux > 0 then
         local total_flux = fast_flux + slow_flux
         if flux_percentage then
@@ -874,7 +874,7 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
             minibar_width = math.max(math.min(rod_gui.bar_width * real_flux_percentage, rod_gui.bar_width), min_width)
         end
         flux_root.total_flux.value = real_flux_percentage
-        flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "nF"}
+        flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "η"}
         local total = fast_flux + slow_flux
         in_flux.fast.value = 1
         in_flux.slow.value = 1
