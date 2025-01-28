@@ -1,10 +1,10 @@
 {
-    "name": "nuclearcraft",
+    "name": "yantm",
     "version": "0.0.1",
     "factorio_version": "2.0",
-    "title": "Nuclearcraft",
+    "title": "Yet Another Nuclear Tech Mod",
     "author": "unfunnyjoke27",
-    "description": "Create puzzling reactor infrastructure.",
+    "description": "Construct reactors with control, moderator and fuel rods. Prevent meltdown with labrythine circuit contraptions.",
     "homepage": "",
     "dependencies": [
       "base >= 2.0"
