@@ -74,6 +74,7 @@ data:extend({
         name = "moderator-rod",
         flags = {"placeable-neutral", "player-creation"},
         inventory_size = 1,
+        localised_description = {"nuclearcraft.moderator-description", "80"},
         max_health = 500,
         collision_box = {{-0.4,-0.4},{0.4,0.4}},
         selection_box = {{-0.5,-0.5},{0.5,0.5}},
@@ -124,6 +125,7 @@ data:extend({
         collision_box = {{-0.4,-0.4},{0.4,0.4}},
         selection_box = {{-0.5,-0.5},{0.5,0.5}},
         map_color = {0,255,0},
+        localised_description = {"nuclearcraft.reflector-description", "5", "2"},
         minable = {result="reflector-rod", mining_time=0.5},
         icons = {
             {

@@ -414,7 +414,7 @@ function rods.update_control_rod(rod)
         rod.insertion = group.val
         return
     end
-    local target = rod.entity.get_signal({type="virtual", name="signal-S"}, defines.wire_connector_id.circuit_green)
+    local target = rod.entity.get_signal({type="virtual", name="signal-S"}, defines.wire_connector_id.circuit_green, defines.wire_connector_id.circuit_red)
     rod.insertion = math.max(math.min(target / 1000, 1), 0.1)
 end
 
@@ -850,7 +850,7 @@ end
 
 ---@param interface Interface
 function rods.update_controller(interface)
-    interface.insertion = interface.entity.get_signal(interface.gsig, defines.wire_connector_id.circuit_green)
+    interface.insertion = interface.entity.get_signal(interface.gsig, defines.wire_connector_id.circuit_green, defines.wire_connector_id.circuit_red)
     interface.reactor--[[@as Reactor]].insertions[interface.group].val = math.min(math.max(interface.insertion / 1000, 0), 1)
 end
 
@@ -866,7 +866,7 @@ function rods.update_reactor(reactor)
     end
     if reactor.group_controllers then
         for _, controller in pairs(reactor.controllers) do
-            controller.insertion = controller.entity.get_signal(controller.gsig, defines.wire_connector_id.circuit_green)
+            controller.insertion = controller.entity.get_signal(controller.gsig, defines.wire_connector_id.circuit_green, defines.wire_connector_id.circuit_red)
             reactor.insertions[controller.group].val = math.min(math.max(controller.insertion / 1000, 0), 1)
         end
     end

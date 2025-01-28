@@ -40,3 +40,11 @@ require("prototypes.entity")
 require("prototypes.signal")
 require("prototypes.recipe")
 require("prototypes.item")
+NUCLEARCRAFT_ALLOWED_FUELS = {
+    "uranium-fuel-cell",
+    "thorium-fuel-cell",
+    "thorium-fuel-cycle-cell",
+    "plutonium-fuel-cell",
+    "mox-fuel-cell",
+    "americium-fuel-cell",
+}
