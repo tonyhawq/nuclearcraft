@@ -37,7 +37,7 @@ data:extend({
         name = "fuel-rod",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/entity/green.png",
+                icon = "__yantm__/graphics/entity/green.png",
             }
         },
         place_result = "fuel-rod",
@@ -50,7 +50,7 @@ data:extend({
         name = "control-rod",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/entity/yellow.png",
+                icon = "__yantm__/graphics/entity/yellow.png",
             }
         },
         place_result = "control-rod",
@@ -63,7 +63,7 @@ data:extend({
         name = "moderator-rod",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/entity/purple.png",
+                icon = "__yantm__/graphics/entity/purple.png",
             }
         },
         place_result = "moderator-rod",
@@ -76,7 +76,7 @@ data:extend({
         name = "source-rod",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/entity/red.png",
+                icon = "__yantm__/graphics/entity/red.png",
             }
         },
         place_result = "source-rod",
@@ -89,7 +89,7 @@ data:extend({
         name = "reflector-rod",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/entity/lime.png",
+                icon = "__yantm__/graphics/entity/lime.png",
             }
         },
         place_result = "reflector-rod",
@@ -102,7 +102,7 @@ data:extend({
         name = "reactor-interface",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/reactor-interface.png",
+                icon = "__yantm__/graphics/icons/reactor-interface.png",
             }
         },
         place_result = "reactor-interface",
@@ -115,7 +115,7 @@ data:extend({
         name = "graphite",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/graphite.png",
+                icon = "__yantm__/graphics/icons/graphite.png",
             }
         },
         subgroup = "raw-material",
@@ -125,7 +125,7 @@ data:extend({
     {
         type = "item",
         name = "cooling-tower",
-        icon = "__nuclearcraft__/graphics/icons/cooling-tower.png",
+        icon = "__yantm__/graphics/icons/cooling-tower.png",
         icon_size = 32,
         subgroup = "energy",
         order = "b[steam-power]-d[cooling-tower]",
@@ -143,10 +143,10 @@ data:extend({
         name = "thorium-fuel-cycle-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
         },
         localised_description = {
@@ -169,10 +169,10 @@ data:extend({
         name = "thorium-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cell-light.png",
             },
         },
         localised_description = {
@@ -195,10 +195,10 @@ data:extend({
         name = "plutonium-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/plutonium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/plutonium-fuel-cell-light.png",
             },
         },
         localised_description = {
@@ -221,10 +221,10 @@ data:extend({
         name = "mox-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/mox-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/mox-fuel-cell-light.png",
             },
         },
         localised_description = {
@@ -247,10 +247,10 @@ data:extend({
         name = "americium-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/americium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/americium-fuel-cell-light.png",
             },
         },
         localised_description = {
@@ -273,10 +273,10 @@ data:extend({
         name = "depleted-thorium-fuel-cycle-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/depleted-thorium-fuel-cycle-cell-light.png",
+                icon = "__yantm__/graphics/icons/depleted-thorium-fuel-cycle-cell-light.png",
             },
         },
         subgroup = "depleted-fuel-cells",
@@ -288,10 +288,10 @@ data:extend({
         name = "depleted-thorium-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/depleted-thorium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/depleted-thorium-fuel-cell-light.png",
             },
         },
         subgroup = "depleted-fuel-cells",
@@ -303,10 +303,10 @@ data:extend({
         name = "depleted-plutonium-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/depleted-plutonium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/depleted-plutonium-fuel-cell-light.png",
             },
         },
         subgroup = "depleted-fuel-cells",
@@ -318,10 +318,10 @@ data:extend({
         name = "depleted-mox-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/depleted-mox-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/depleted-mox-fuel-cell-light.png",
             },
         },
         subgroup = "depleted-fuel-cells",
@@ -333,10 +333,10 @@ data:extend({
         name = "depleted-americium-fuel-cell",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/depleted-americium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/depleted-americium-fuel-cell-light.png",
             },
         },
         subgroup = "depleted-fuel-cells",
@@ -348,7 +348,7 @@ data:extend({
         name = "thorium-232",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-232.png",
+                icon = "__yantm__/graphics/icons/thorium-232.png",
             },
         },
         subgroup = "isotopes",
@@ -366,7 +366,7 @@ data:extend({
         name = "uranium-233",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/uranium-233.png",
+                icon = "__yantm__/graphics/icons/uranium-233.png",
             },
         },
         subgroup = "isotopes",
@@ -378,7 +378,7 @@ data:extend({
         name = "uranium-232",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/uranium-232.png",
+                icon = "__yantm__/graphics/icons/uranium-232.png",
             },
         },
         subgroup = "isotopes",
@@ -390,7 +390,7 @@ data:extend({
         name = "plutonium-239",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/plutonium-239.png",
+                icon = "__yantm__/graphics/icons/plutonium-239.png",
             },
         },
         subgroup = "isotopes",
@@ -402,7 +402,7 @@ data:extend({
         name = "plutonium-240",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/plutonium-240.png",
+                icon = "__yantm__/graphics/icons/plutonium-240.png",
             },
         },
         subgroup = "isotopes",
@@ -414,7 +414,7 @@ data:extend({
         name = "americium-241",
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/americium-241.png",
+                icon = "__yantm__/graphics/icons/americium-241.png",
             },
         },
         subgroup = "isotopes",

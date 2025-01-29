@@ -9,6 +9,7 @@ data:extend({
         ingredients = {
             {type="item", name="steel-plate", amount=100},
             {type="item", name="concrete", amount=100},
+            {type="item", name="copper-plate", amount=100},
             {type="item", name="advanced-circuit", amount=25},
         },
         results = {
@@ -24,7 +25,7 @@ data:extend({
             {type="item", name="steel-plate", amount=100},
             {type="item", name="concrete", amount=100},
             {type="item", name="copper-plate", amount=100},
-            {type="item", name="electric-engine-unit", amount=100},
+            {type="item", name="engine-unit", amount=100},
             {type="item", name="advanced-circuit", amount=25},
         },
         results = {
@@ -120,7 +121,7 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-232.png",
+                icon = "__yantm__/graphics/icons/thorium-232.png",
             }
         },
         main_product = "thorium-232",
@@ -147,10 +148,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/mox-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/mox-fuel-cell-light.png",
             },
         },
         main_product = "mox-fuel-cell",
@@ -175,10 +176,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/plutonium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/plutonium-fuel-cell-light.png",
             },
         },
         main_product = "plutonium-fuel-cell",
@@ -195,6 +196,34 @@ data:extend({
         subgroup = "fuel-cells",
         order = "z"
     },
+    {
+        type = "recipe",
+        name = "americium-fuel-cell",
+        category = "crafting",
+        enabled = false,
+        energy_required = 2,
+        icons = {
+            {
+                icon = "__yantm__/graphics/icons/base-cell.png",
+            },
+            {
+                icon = "__yantm__/graphics/icons/americium-fuel-cell-light.png",
+            },
+        },
+        main_product = "americium-fuel-cell",
+        ingredients =
+        {
+            {type="item", name="iron-plate", amount=1},
+            {type="item", name="americium-241", amount=1},
+        },
+        results =
+        {
+            {type="item", name="americium-fuel-cell", amount=1},
+        },
+        icon_size = 64,
+        subgroup = "fuel-cells",
+        order = "z"
+    },
 })
 data:extend({
     {
@@ -205,10 +234,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
         },
         ingredients =
@@ -233,10 +262,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
         },
         ingredients =
@@ -261,10 +290,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cell-light.png",
             },
         },
         main_product = "thorium-fuel-cell",
@@ -290,13 +319,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/arrow.png",
+                icon = "__yantm__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -320,13 +349,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/thorium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/thorium-fuel-cell-light.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/arrow.png",
+                icon = "__yantm__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -350,13 +379,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/mox-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/mox-fuel-cell-light.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/arrow.png",
+                icon = "__yantm__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -381,13 +410,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/plutonium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/plutonium-fuel-cell-light.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/arrow.png",
+                icon = "__yantm__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -411,13 +440,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__nuclearcraft__/graphics/icons/base-cell.png",
+                icon = "__yantm__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/americium-fuel-cell-light.png",
+                icon = "__yantm__/graphics/icons/americium-fuel-cell-light.png",
             },
             {
-                icon = "__nuclearcraft__/graphics/icons/arrow.png",
+                icon = "__yantm__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -434,6 +463,8 @@ data:extend({
         order = "f"
     },
 })
+data.raw.recipe["uranium-fuel-cell"].subgroup = "fuel-cells"
+data.raw.recipe["uranium-fuel-cell"].order = "a"
 local reprocessing = data.raw.recipe["nuclear-fuel-reprocessing"]
 reprocessing.ingredients = {{type="item", name="depleted-uranium-fuel-cell", amount=1}}
 reprocessing.results = {
