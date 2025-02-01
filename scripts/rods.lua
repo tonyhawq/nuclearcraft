@@ -1,5 +1,13 @@
 local rods = {}
 
+local constants = require("__yantm__.constants.constants")
+
+rods.fuel_rods = constants.fuel_rods
+rods.control_rods = constants.control_rods
+rods.moderator_rods = constants.moderator_rods
+rods.reflector_rods = constants.reflector_rods
+rods.source_rods = constants.source_rods
+
 rods.interface_name = "reactor-interface"
 rods.heat_interface_name = "nc-fuel-rod-heat"
 rods.circuit_interface_name = "nc-circuit-interface"
@@ -92,12 +100,13 @@ function rods.on_fuel_rod_built(entity)
     end
     local section = behaviour.add_section()
     local id = script.register_on_object_destroyed(entity)
+    local spec = rods.fuel_rods[entity.name]
     local fuel_rod = {
         fuel = nil,
         type = "fuel",
         power = 0,
-        fast_coeff = 0.5,
-        slow_coeff = 0.5,
+        fast_coeff = spec.fast_cross_section,
+        slow_coeff = spec.slow_cross_section,
         cslow = 0,
         cfast = 0,
         fast_flux = 0,
@@ -117,7 +126,7 @@ function rods.on_fuel_rod_built(entity)
         base_fast_flux = 0,
         base_slow_flux = 0,
         wants_fuel = nil,
-        affectable_distance = 10,
+        affectable_distance = spec.affectable_distance,
         delta_flux = 0,
         requested = false,
         requested_waste = false,
@@ -235,16 +244,17 @@ function rods.on_source_built(entity)
         error("Could not construct connector for control rod "..tostring(entity.name))
     end
     local id = script.register_on_object_destroyed(entity)
+    local spec = rods.source_rods[entity.name]
     local source = {
         type = "source",
         entity = entity,
         connector = connector,
         reactor = nil,
         id = id,
-        slow_flux = 6,
-        fast_flux = 0,
+        slow_flux = spec.slow_flux,
+        fast_flux = spec.fast_flux,
         range = 3,
-        penalty = 0.5,
+        penalty = spec.efficiency_penalty,
     } --[[@as Source]]
     storage.rods[id] = source
     rods.create_connector(connector, source)
@@ -258,14 +268,15 @@ function rods.on_reflector_built(entity)
     end
     local pipe = entity.surface.create_entity{name=rods.heat_pipe_name, position=entity.position, force=entity.force}
     local id = script.register_on_object_destroyed(entity)
+    local spec = rods.reflector_rods[entity.name]
     local reflector = {
         type = "reflector",
         entity = entity,
         heat_pipe = pipe,
         connector = connector,
         id = id,
-        reflection_distance = 5,
-        bounce_limit = 2,
+        reflection_distance = spec.reflection_distance,
+        bounce_limit = spec.bounce_limit,
     } --[[@as Reflector]]
     storage.reflectors[id] = reflector
     rods.create_connector(connector, reflector)
@@ -279,25 +290,21 @@ function rods.on_moderator_built(entity)
     end
     local pipe = entity.surface.create_entity{name=rods.heat_pipe_name, position=entity.position, force=entity.force}
     local id = script.register_on_object_destroyed(entity)
+    local spec = rods.moderator_rods[entity.name]
     local moderator = {
         type = "mod",
         entity = entity,
         connector = connector,
         heat_pipe = pipe,
         id = id,
-        conversion = 0.8,
+        conversion = spec.conversion,
     } --[[@as Moderator]]
     storage.moderators[id] = moderator
     rods.create_connector(connector, moderator)
 end
 
 rods.on_built_by_name = {
-    ["fuel-rod"] = rods.on_fuel_rod_built,
-    ["control-rod"] = rods.on_control_rod_built,
-    ["source-rod"] = rods.on_source_built,
-    ["reflector-rod"] = rods.on_reflector_built,
     ["reactor-interface"] = rods.on_interface_built,
-    ["moderator-rod"] = rods.on_moderator_built,
     ["reactor-controller"] = rods.on_controller_built,
 }
 
@@ -306,8 +313,24 @@ local void_mt = {__call = function() end}
 setmetatable(rods.void, void_mt)
 
 ---@param entity LuaEntity
+function rods.on_built_fallback(entity)
+    local name = entity.name
+    if rods.fuel_rods[name] then
+        rods.on_fuel_rod_built(entity)
+    elseif rods.control_rods[name] then
+        rods.on_control_rod_built(entity)
+    elseif rods.moderator_rods[name] then
+        rods.on_moderator_built(entity)
+    elseif rods.reflector_rods[name] then
+        rods.on_reflector_built(entity)
+    elseif rods.source_rods[name] then
+        rods.on_source_built(entity)
+    end
+end
+
+---@param entity LuaEntity
 function rods.on_built(entity)
-    (rods.on_built_by_name[entity.name] or rods.void)(entity)
+    (rods.on_built_by_name[entity.name] or rods.on_built_fallback)(entity)
 end
 
 ---@param event EventData.on_object_destroyed
