@@ -120,6 +120,8 @@ data:extend({
         },
         subgroup = "raw-material",
         order = "a[smelting]-d[graphite]",
+        fuel_value = "5MJ",
+        fuel_category = "chemical",
         stack_size = 50,
     },
     {

@@ -101,7 +101,7 @@ data:extend({
         type = "recipe",
         name = "graphite",
         category = "smelting",
-        enabled = false,
+        enabled = true,
         energy_required = 12.8,
         main_product = "graphite",
         ingredients =
@@ -165,8 +165,6 @@ data:extend({
             {type="item", name="mox-fuel-cell", amount=1},
         },
         icon_size = 64,
-        subgroup = "fuel-cells",
-        order = "z"
     },
     {
         type = "recipe",
@@ -193,8 +191,6 @@ data:extend({
             {type="item", name="plutonium-fuel-cell", amount=1},
         },
         icon_size = 64,
-        subgroup = "fuel-cells",
-        order = "z"
     },
     {
         type = "recipe",
@@ -221,8 +217,6 @@ data:extend({
             {type="item", name="americium-fuel-cell", amount=1},
         },
         icon_size = 64,
-        subgroup = "fuel-cells",
-        order = "z"
     },
 })
 data:extend({
@@ -232,6 +226,7 @@ data:extend({
         category = "crafting",
         enabled = false,
         energy_required = 2,
+        main_product = "",
         icons = {
             {
                 icon = "__yantm__/graphics/icons/base-cell.png",
@@ -252,7 +247,7 @@ data:extend({
         },
         icon_size = 64,
         subgroup = "fuel-cells",
-        order = "z"
+        order = "aba",
     },
     {
         type = "recipe",
@@ -260,6 +255,7 @@ data:extend({
         category = "crafting",
         enabled = false,
         energy_required = 2,
+        main_product = "",
         icons = {
             {
                 icon = "__yantm__/graphics/icons/base-cell.png",
@@ -280,7 +276,7 @@ data:extend({
         },
         icon_size = 64,
         subgroup = "fuel-cells",
-        order = "z"
+        order = "abb",
     },
     {
         type = "recipe",
@@ -308,8 +304,6 @@ data:extend({
             {type="item", name="thorium-fuel-cell", amount=10},
         },
         icon_size = 64,
-        subgroup = "production-machine",
-        order = "z"
     },
     {
         type = "recipe",
@@ -470,6 +464,7 @@ reprocessing.ingredients = {{type="item", name="depleted-uranium-fuel-cell", amo
 reprocessing.results = {
     {type="item", name="uranium-238", amount=1},
     {type="item", name="plutonium-239", amount=1, probability=0.25},
+    {type="item", name="plutonium-240", amount=1, probability=0.25},
 }
 reprocessing.energy_required = 15
 reprocessing.subgroup = "fuel-reprocessing"
