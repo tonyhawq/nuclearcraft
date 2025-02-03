@@ -333,6 +333,17 @@ function rods.on_built(entity)
     (rods.on_built_by_name[entity.name] or rods.on_built_fallback)(entity)
 end
 
+function rods.on_player_mined(entity)
+    if rods.fuel_rods[entity.name] then
+        local rod = storage.rods[script.register_on_object_destroyed(entity)] --[[@as FuelRod?]]
+        if rod then
+            if rod.fuel then
+
+            end
+        end
+    end
+end
+
 ---@param event EventData.on_object_destroyed
 function rods.on_destroyed(event)
     local id = event.registration_number
@@ -488,6 +499,7 @@ function rods.update_fuel_rod_fuel(rod, reactor)
         want_fuel.inventory.remove{name=rod.wants_fuel, count=count}
         want_fuel.count = want_fuel.count - count
         fuel.buffered = fuel.buffered + count
+        fuel.spent_fuel = true
     else
         local count = math.min(want_fuel.count, rod.wants_max + 1)
         want_fuel.inventory.remove{name=rod.wants_fuel, count=count}
@@ -501,6 +513,7 @@ function rods.update_fuel_rod_fuel(rod, reactor)
             total_fuel = memo.total_fuel,
             buffered = count - 1,
             buffered_out = 0,
+            spent_fuel = true,
         }
     end
     rods.unrequest(rod, rod.reactor)
@@ -703,41 +716,12 @@ function rods.update_fuel_rod(rod)
             reactor.need_fuel = reactor.need_fuel + 1
         end
         rods.update_fuel_rod_fuel(rod, reactor)
-    end
-    ::skip::
-    if fuel.fuel_remaining <= 0 then
-        if fuel.buffered > 0 then
-            fuel.buffered = fuel.buffered - 1
-            fuel.fuel_remaining = fuel.total_fuel
-            fuel.buffered_out = fuel.buffered_out + 1
-            if not rod.requested_waste then
-                rod.requested_waste = true
-                reactor.need_waste = reactor.need_waste + 1
-            end
-        elseif fuel.buffered_out <= 0 then
-            rod.fuel = nil
-            if rod.wants_min and rod.wants_min > 0 then
-                rods.update_fuel_rod_fuel(rod, reactor)
-                if not rod.fuel then    
-                    pause_rod(rod)
-                    return
-                end
-            end
-        else
-            if not rod.requested_waste then
-                rod.requested_waste = true
-                reactor.need_waste = reactor.need_waste + 1
-            end
-            pause_rod(rod)
+        if not rod.fuel then
             return
         end
+        fuel = rod.fuel --[[@as Fuel]]
     end
-    if fuel.buffered_out > 0 then
-        if not rod.requested_waste then
-            rod.requested_waste = true
-            reactor.need_waste = reactor.need_waste + 1
-        end
-    end
+    ::skip::
     if rod.requested_waste then
         if fuel.buffered_out <= 0 then
             rod.requested_waste = false
@@ -755,6 +739,49 @@ function rods.update_fuel_rod(rod)
                 rod.reactor.need_waste = rod.reactor.need_waste - 1
             end
         end
+    end
+    if fuel.fuel_remaining <= 0 then
+        if fuel.spent_fuel then
+            fuel.buffered_out = fuel.buffered_out + 1
+            fuel.spent_fuel = false
+        end
+        if not rod.requested_waste then
+            rod.requested_waste = true
+            reactor.need_waste = reactor.need_waste + 1
+        end
+        if fuel.buffered > 0 then
+            fuel.buffered = fuel.buffered - 1
+            fuel.fuel_remaining = fuel.total_fuel
+            if not rod.requested_waste then
+                rod.requested_waste = true
+                reactor.need_waste = reactor.need_waste + 1
+            end
+        elseif fuel.buffered_out <= 0 then
+            rod.fuel = nil
+            if rod.wants_min and rod.wants_min > 0 then
+                rods.update_fuel_rod_fuel(rod, reactor)
+                if not rod.fuel then
+                    pause_rod(rod)
+                    return
+                end
+            end
+            if rod.fuel then
+                fuel = rod.fuel --[[@as Fuel]]
+            else
+                return
+            end
+        else
+            if not rod.requested_waste then
+                rod.requested_waste = true
+                reactor.need_waste = reactor.need_waste + 1
+            end
+            pause_rod(rod)
+            return
+        end
+    end
+    if fuel.buffered_out > 50 then
+        pause_rod(rod)
+        return
     end
     --[[
     local sws = rod.sws
@@ -792,7 +819,7 @@ function rods.update_fuel_rod(rod)
     rod.power = power
     rod.efficiency = efficiency
     rod.delta_flux = out_slow + out_fast - last_slow - last_fast
-    fuel.fuel_remaining = fuel.fuel_remaining - power / efficiency
+    fuel.fuel_remaining = math.max(fuel.fuel_remaining - power / efficiency, 0)
     rod.interface.set_heat_setting{mode="add", temperature=power / heat_interface_capacity / 60}
     for _, dir in pairs(rod.affects) do
         local sf = out_slow / 4

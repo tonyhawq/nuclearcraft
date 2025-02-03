@@ -46,6 +46,7 @@
 ---@field total_fuel number
 ---@field buffered number
 ---@field buffered_out number
+---@field spent_fuel boolean?
 
 ---@class (exact) BurntFuel
 ---@field from string[]

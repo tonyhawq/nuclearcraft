@@ -24,10 +24,10 @@ formula.characteristics = {
             return math.min(math.max(fast_flux + temperature / 200, 1), 15)
         end]],
         target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
-            return placeholder
+            return 8008135
         end]],
         target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
-            return placeholder
+            return 8008135
         end]],
         flux_significant_variable = "s",
         power_significant_variable = "s",
@@ -54,10 +54,10 @@ formula.characteristics = {
             return math.max(1000/math.max(temperature - 200, 41.65) + 1, 1)
         end]],
         target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
-            return placeholder
+            return 8008135
         end]],
         target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
-            return placeholder
+            return 8008135
         end]],
         flux_significant_variable = "s",
         power_significant_variable = "s",
@@ -84,10 +84,10 @@ formula.characteristics = {
             return math.max(2000/math.max(temperature - 200, 41.65) + 1, 1)
         end]],
         target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
-            return placeholder
+            return 8008135
         end]],
         target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
-            return placeholder
+            return 8008135
         end]],
         flux_significant_variable = "s",
         power_significant_variable = "s",
@@ -208,8 +208,8 @@ formula.fuels = {
         item = "uranium-fuel-cell",
         burnt_item = "depleted-uranium-fuel-cell",
         character_name = "uranium",
-        fuel_remaining = 8000,
-        total_fuel = 8000,
+        fuel_remaining = 80,
+        total_fuel = 80,
         buffered = 0,
         buffered_out = 0,
     },
