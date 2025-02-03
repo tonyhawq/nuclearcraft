@@ -2,7 +2,6 @@ local formula = {}
 
 formula.max = 1000000
 
-local fmax = formula.max
 local max = math.max
 local min = math.min
 local sqrt= math.sqrt
@@ -14,22 +13,25 @@ local placeholder = 1
 ---@type table<string, FuelCharacteristic>
 formula.characteristics = {
     ["uranium"] = {
-        flux = function (s, f, t)
-            local output = max(2.5*s, 0.1)
-            return min(output * 0.1, fmax), min(output * 0.9, fmax)
-        end,
-        power = function (slow_flux, fast_flux)
+        flux_str = [[return function (s, f, t)
+            local output = math.max(2.5*s, 0.1)
+            return math.min(output * 0.1, 1000000), math.min(output * 0.9, 1000000)
+        end]],
+        power_str = [[return function (slow_flux, fast_flux)
             return slow_flux + fast_flux
-        end,
-        efficiency = function (slow_flux, fast_flux, temperature)
-            return min(max(fast_flux + temperature / 200, 1), 15)
-        end,
-        target_fast_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        efficiency_str = [[return function (slow_flux, fast_flux, temperature)
+            return math.min(math.max(fast_flux + temperature / 200, 1), 15)
+        end]],
+        target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return placeholder
-        end,
-        target_slow_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return placeholder
-        end,
+        end]],
+        flux_significant_variable = "s",
+        power_significant_variable = "s",
+        efficiency_significant_variable = "t",
         max_fast_flux = placeholder,
         max_slow_flux = placeholder,
         max_efficiency = 15,
@@ -38,25 +40,28 @@ formula.characteristics = {
         self_starting = true,
     },
     ["thorium"] = {
-        flux = function (s, f, t)
+        flux_str = [[return function (s, f, t)
             if s < 0.5 then
                 return 0, 0
             end
             local output = 2.5*s
-            return min(output * 0.1, fmax), min(output * 0.9, fmax)
-        end,
-        power = function (slow_flux, fast_flux)
+            return math.min(output * 0.1, 1000000), math.min(output * 0.9, 1000000)
+        end]],
+        power_str = [[return function (slow_flux, fast_flux)
             return slow_flux + fast_flux
-        end,
-        efficiency = function (slow_flux, fast_flux, temperature)
-            return max(1000/max(temperature - 200, 41.65) + 1, 1)
-        end,
-        target_fast_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        efficiency_str = [[return function (slow_flux, fast_flux, temperature)
+            return math.max(1000/math.max(temperature - 200, 41.65) + 1, 1)
+        end]],
+        target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return placeholder
-        end,
-        target_slow_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return placeholder
-        end,
+        end]],
+        flux_significant_variable = "s",
+        power_significant_variable = "s",
+        efficiency_significant_variable = "t",
         max_fast_flux = placeholder,
         max_slow_flux = placeholder,
         max_efficiency = placeholder,
@@ -65,25 +70,28 @@ formula.characteristics = {
         self_starting = false,
     },
     ["thorium-cycle"] = {
-        flux = function (s, f, t)
+        flux_str = [[return function (s, f, t)
             if s < 0.5 then
                 return 0, 0
             end
             local output = 2.5*s
-            return min(output * 0.1, fmax), min(output * 0.9, fmax)
-        end,
-        power = function (slow_flux, fast_flux)
+            return math.min(output * 0.1, 1000000), math.min(output * 0.9, 1000000)
+        end]],
+        power_str = [[return function (slow_flux, fast_flux)
             return slow_flux + fast_flux
-        end,
-        efficiency = function (slow_flux, fast_flux, temperature)
-            return max(2000/max(temperature - 200, 41.65) + 1, 1)
-        end,
-        target_fast_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        efficiency_str = [[return function (slow_flux, fast_flux, temperature)
+            return math.max(2000/math.max(temperature - 200, 41.65) + 1, 1)
+        end]],
+        target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return placeholder
-        end,
-        target_slow_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return placeholder
-        end,
+        end]],
+        flux_significant_variable = "s",
+        power_significant_variable = "s",
+        efficiency_significant_variable = "t",
         max_fast_flux = placeholder,
         max_slow_flux = placeholder,
         max_efficiency = placeholder,
@@ -92,21 +100,24 @@ formula.characteristics = {
         self_starting = false,
     },
     ["americium"] = {
-        flux = function (s, f, t)
+        flux_str = [[return function (s, f, t)
             return 5 + t / 100, 5 + t / 100
-        end,
-        power = function (slow_flux, fast_flux)
+        end]],
+        power_str = [[return function (slow_flux, fast_flux)
             return slow_flux + fast_flux
-        end,
-        efficiency = function (slow_flux, fast_flux, temperature)
+        end]],
+        efficiency_str = [[return function (slow_flux, fast_flux, temperature)
             return 1
-        end,
-        target_fast_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return 0
-        end,
-        target_slow_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return temperature * 0.025
-        end,
+        end]],
+        flux_significant_variable = "s",
+        power_significant_variable = "s",
+        efficiency_significant_variable = "t",
         max_fast_flux = placeholder,
         max_slow_flux = placeholder,
         max_efficiency = 1,
@@ -115,21 +126,24 @@ formula.characteristics = {
         self_starting = true,
     },
     ["plutonium"] = {
-        flux = function (s, f, t)
-            return 0, max(2.5*s, 0.1)
-        end,
-        power = function (slow_flux, fast_flux)
+        flux_str = [[return function (s, f, t)
+            return 0, math.max(2.5*s, 0.1)
+        end]],
+        power_str = [[return function (slow_flux, fast_flux)
             return slow_flux + fast_flux
-        end,
-        efficiency = function (s, f, t)
-            return max(-f/(s+0.1) + 15, 0.5)
-        end,
-        target_fast_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        efficiency_str = [[return function (s, f, t)
+            return math.max(-f/(s+0.1) + 15, 0.5)
+        end]],
+        target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return 0
-        end,
-        target_slow_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return temperature * 0.025
-        end,
+        end]],
+        flux_significant_variable = "s",
+        power_significant_variable = "s",
+        efficiency_significant_variable = "f",
         max_fast_flux = placeholder,
         max_slow_flux = placeholder,
         max_efficiency = placeholder,
@@ -138,22 +152,25 @@ formula.characteristics = {
         self_starting = true,
     },
     ["mox"] = {
-        flux = function (s, f, t)
-            local output = max(1.5*(s+f), 0.1)
+        flux_str = [[return function (s, f, t)
+            local output = math.max(1.5*(s+f), 0.1)
             return output / 2, output / 2
-        end,
-        power = function (slow_flux, fast_flux)
+        end]],
+        power_str = [[return function (slow_flux, fast_flux)
             return slow_flux + fast_flux
-        end,
-        efficiency = function (s, f, t)
-            return max(-s/(f+0.1) + 15, 0.5)
-        end,
-        target_fast_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        efficiency_str = [[return function (s, f, t)
+            return math.max(-s/(f+0.1) + 15, 0.5)
+        end]],
+        target_fast_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return 0
-        end,
-        target_slow_flux = function (slow_flux, fast_flux, temperature)
+        end]],
+        target_slow_flux_str = [[return function (slow_flux, fast_flux, temperature)
             return temperature * 0.025
-        end,
+        end]],
+        flux_significant_variable = "s",
+        power_significant_variable = "s",
+        efficiency_significant_variable = "s",
         max_fast_flux = placeholder,
         max_slow_flux = placeholder,
         max_efficiency = placeholder,
@@ -162,6 +179,28 @@ formula.characteristics = {
         self_starting = true,
     },
 }
+
+function formula.argname_to_argnum(val)
+    if type(val) == "number" then
+        return val
+    end
+    if val == "s" then
+        return 1
+    elseif val == "f" then
+        return 2
+    elseif val == "t" then
+        return 3
+    end
+    return 1
+end
+
+for _, characteristic in pairs(formula.characteristics) do
+    characteristic.power = load(characteristic.power_str)()
+    characteristic.flux = load(characteristic.flux_str)()
+    characteristic.efficiency = load(characteristic.efficiency_str)()
+    characteristic.target_fast_flux = load(characteristic.target_fast_flux_str)()
+    characteristic.target_slow_flux = load(characteristic.target_slow_flux_str)()
+end
 
 ---@type table<string, Fuel>
 formula.fuels = {

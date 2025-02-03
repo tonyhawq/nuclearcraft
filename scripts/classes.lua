@@ -4,17 +4,25 @@
 ---@alias GenericFormula fun(slow_flux: number, fast_flux: number, temperature: number): number
 
 ---@class (exact) FuelCharacteristic
----@field flux NeutronOutputFormula
----@field power PowerOutputFormula
----@field efficiency EfficiencyFormula
----@field target_slow_flux GenericFormula
----@field target_fast_flux GenericFormula
+---@field flux NeutronOutputFormula?
+---@field flux_str string
+---@field power PowerOutputFormula?
+---@field power_str string
+---@field efficiency EfficiencyFormula?
+---@field efficiency_str string
+---@field target_slow_flux GenericFormula?
+---@field target_slow_flux_str string
+---@field target_fast_flux GenericFormula?
+---@field target_fast_flux_str string
 ---@field max_slow_flux number
 ---@field max_fast_flux number
 ---@field max_efficiency number
 ---@field max_power number
 ---@field name string
 ---@field self_starting boolean
+---@field flux_significant_variable "s"|"f"|"t"|1|2|3
+---@field power_significant_variable "s"|"f"|"t"|1|2|3
+---@field efficiency_significant_variable "s"|"f"|"t"|1|2|3
 
 ---@class (exact) Connector
 ---@field entity LuaEntity

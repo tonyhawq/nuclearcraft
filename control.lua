@@ -6,13 +6,27 @@ RodGUI = require("__yantm__.scripts.rod-gui")
 ControlRodGUI = require("__yantm__.scripts.control-rod-gui")
 Remnants = require("__yantm__.scripts.remnants")
 Cooling = require("__yantm__.scripts.cooling-towers")
+Cameras = require("__yantm__.scripts.camera-surface")
+Explorer = require("__yantm__.scripts.formula-explorer")
 require("__yantm__.scripts.remote")
+
+commands.add_command("explore", "", function (command)
+    if command.player_index ~= nil then
+        local player = game.get_player(command.player_index)
+        Explorer.open(player--[[@as LuaPlayer]])
+    end
+end)
 
 script.on_init(function()
     Rods.setup()
     Schedule.setup()
     Remnants.setup()
     Cooling.setup()
+    Cameras.setup()
+end)
+
+script.on_load(function ()
+    Cameras.on_load()
 end)
 
 script.on_nth_tick(15, function (_)
@@ -132,6 +146,7 @@ end)
 script.on_event(defines.events.on_gui_value_changed, function (event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     RodGUI.value_changed(event, player)
+    Explorer.on_value_changed(event.element)
 end)
 
 script.on_event(defines.events.on_gui_confirmed, function (event)
@@ -148,11 +163,20 @@ script.on_event(defines.events.on_gui_opened, function(event)
     ControlRodGUI.open(player, entity)
 end)
 
+script.on_event(defines.events.on_gui_text_changed, function(event)
+    Explorer.gui_text_changed(event.element, event.text)
+end)
+
+script.on_event(defines.events.on_gui_selection_state_changed, function(event)
+    Explorer.on_gui_selection_state_changed(event.element)
+end)
+
 script.on_event(defines.events.on_gui_closed, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.close(player)
     RodGUI.on_close(event, player)
     ControlRodGUI.on_close(event, player)
+    Explorer.on_close(event, player)
 end)
 
 script.on_event(defines.events.on_gui_switch_state_changed, function(event)
@@ -166,6 +190,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     InterfaceGUI.player_clicked_gui(event, player)
     RodGUI.player_clicked_gui(event, player)
     ControlRodGUI.player_clicked_gui(event, player)
+    Explorer.player_clicked_gui(event, player)
 end)
 
 script.on_event(defines.events.on_gui_elem_changed, function(event)
