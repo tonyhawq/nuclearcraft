@@ -87,6 +87,31 @@ function rods.on_controller_built(entity)
     rods.create_connector(connector, controller)
 end
 
+---@param rod FuelRod
+---@return SimpleItemStack[]?
+function rods.get_minable_results_from(rod)
+    if not rod.fuel then
+        return nil
+    end
+    local has_items = false
+    local items = {}
+    if rod.fuel.buffered > 0 then
+        has_items = true
+        table.insert(items, {name=rod.fuel.item, count=rod.fuel.buffered})
+    end
+    if rod.fuel.buffered_out or rod.fuel.fuel_remaining > 0 then
+        has_items = true
+        local amount = rod.fuel.buffered_out
+        if rod.fuel.fuel_remaining > 0 then
+            amount = amount + 1
+        end
+        table.insert(items, {name=rod.fuel.burnt_item, count=amount})
+    end
+    if has_items then
+        return items
+    end
+end
+
 ---@param entity LuaEntity
 function rods.on_fuel_rod_built(entity)
     local connector = entity.surface.create_entity{name=rods.connector_name, position=entity.position, force=entity.force}
@@ -102,6 +127,7 @@ function rods.on_fuel_rod_built(entity)
     local id = script.register_on_object_destroyed(entity)
     local spec = rods.fuel_rods[entity.name]
     local fuel_rod = {
+        has_minable = true,
         fuel = nil,
         type = "fuel",
         power = 0,
@@ -333,13 +359,58 @@ function rods.on_built(entity)
     (rods.on_built_by_name[entity.name] or rods.on_built_fallback)(entity)
 end
 
-function rods.on_player_mined(entity)
+---@param player LuaPlayer
+---@param entity LuaEntity
+function rods.on_player_mined(player, entity)
     if rods.fuel_rods[entity.name] then
         local rod = storage.rods[script.register_on_object_destroyed(entity)] --[[@as FuelRod?]]
-        if rod then
-            if rod.fuel then
-
+        if not rod then
+            return
+        end
+        if not rod.has_minable then
+            return
+        end
+        local results = rods.get_minable_results_from(rod)
+        if not results then
+            return
+        end
+        rods.has_minable = false
+        local surf = entity.surface
+        local pos = entity.position
+        local inv = player.get_main_inventory()
+        for _, item in pairs(results) do
+            if inv and inv.can_insert(item) then
+                local count = inv.insert(item)
+                if count < item.count then
+                    count = item.count - count
+                    surf.spill_item_stack{position=pos, stack={name=item.name, count=count}, force=entity.force}
+                end
+            else
+                surf.spill_item_stack{position=pos, stack=item, force=entity.force}
             end
+        end
+    end
+end
+
+---@param entity LuaEntity
+function rods.on_robot_mined(entity)
+    if rods.fuel_rods[entity.name] then
+        local rod = storage.rods[script.register_on_object_destroyed(entity)] --[[@as FuelRod?]]
+        if not rod then
+            return
+        end
+        if not rod.has_minable then
+            return
+        end
+        local results = rods.get_minable_results_from(rod)
+        if not results then
+            return
+        end
+        rods.has_minable = false
+        local surf = entity.surface
+        local pos = entity.position
+        for _, item in pairs(results) do
+            surf.spill_item_stack{position=pos, stack=item, force=entity.force}
         end
     end
 end

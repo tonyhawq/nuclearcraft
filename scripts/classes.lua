@@ -59,6 +59,7 @@
 ---@field smoke_source LuaEntity?
 
 ---@class (exact) FuelRod
+---@field has_minable boolean
 ---@field smoke_source LuaEntity?
 ---@field force LuaForce
 ---@field position MapPosition

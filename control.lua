@@ -193,6 +193,15 @@ script.on_event(defines.events.on_player_created, function (event)
     Explorer.on_player_created(player)
 end)
 
+script.on_event(defines.events.on_player_mined_entity, function (event)
+    local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+    Rods.on_player_mined(player, event.entity)
+end)
+
+script.on_event(defines.events.on_robot_mined_entity, function (event)
+    Rods.on_robot_mined(event.entity)
+end)
+
 script.on_event(defines.events.on_gui_click, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.player_clicked_gui(event, player)
