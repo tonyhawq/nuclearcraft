@@ -95,17 +95,27 @@ function rods.get_minable_results_from(rod)
     end
     local has_items = false
     local items = {}
+    local normal_amount = 0
     if rod.fuel.buffered > 0 then
-        has_items = true
-        table.insert(items, {name=rod.fuel.item, count=rod.fuel.buffered})
+        normal_amount = rod.fuel.buffered
     end
     if rod.fuel.buffered_out or rod.fuel.fuel_remaining > 0 then
         has_items = true
         local amount = rod.fuel.buffered_out
         if rod.fuel.fuel_remaining > 0 then
-            amount = amount + 1
+            if rod.fuel.fuel_remaining == rod.fuel.total_fuel then
+                normal_amount = normal_amount + 1
+            else
+                amount = amount + 1
+            end
         end
-        table.insert(items, {name=rod.fuel.burnt_item, count=amount})
+        if amount > 0 then
+            table.insert(items, {name=rod.fuel.burnt_item, count=amount})
+        end
+    end
+    if normal_amount > 0 then
+        has_items = true
+        table.insert(items, {name=rod.fuel.item, count=normal_amount})
     end
     if has_items then
         return items
