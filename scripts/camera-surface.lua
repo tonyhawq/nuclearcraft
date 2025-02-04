@@ -172,6 +172,20 @@ function csurf.generate_graph(graph)
                 color = csurf.graph_colors[k],
                 width = graph.line_width,
             })
+            table.insert(graph.graph, rendering.draw_circle{
+                surface = graph.surface,
+                target=from_pos,
+                color=csurf.graph_colors[k],
+                radius = graph.line_width / (64),
+                filled = true,
+            })
+            table.insert(graph.graph, rendering.draw_circle{
+                surface = graph.surface,
+                target=to_pos,
+                color=csurf.graph_colors[k],
+                radius = graph.line_width / (64),
+                filled = true,
+            })
         end
     end
     csurf.render_graph_axis_numbers(graph)
@@ -464,7 +478,7 @@ function csurf.unmap_cursor_pos(graph, val)
 end
 
 function csurf.format_number(number)
-    local digits = math.ceil(math.log(number, 10))
+    local digits = math.ceil(math.log(math.abs(number), 10))
     return string.format("%."..tostring(math.max(math.min(-digits + 4, 4), 1)).."f", number)
 end
 
