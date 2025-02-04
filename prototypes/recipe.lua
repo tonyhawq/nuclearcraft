@@ -128,12 +128,13 @@ data:extend({
         ingredients =
         {
             {type="fluid", name="steam", amount=500, temperature=500},
+            {type="item", name="uranium-ore", amount=1},
             {type="fluid", name="sulfuric-acid", amount=20},
         },
         results =
         {
             {type="item", name="thorium-232", amount=1, probability=0.1},
-            {type="item", name="iron-ore", amount=1},
+            {type="item", name="iron-ore", amount=1, probability=0.5},
             {type="fluid", name="water", amount=50},
         },
         icon_size = 64,

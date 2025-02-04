@@ -185,6 +185,14 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
     RodGUI.on_gui_switch_state_changed(event, player)
 end)
 
+script.on_event(defines.events.on_player_created, function (event)
+    local player = game.get_player(event.player_index)
+    if not player then
+        return
+    end
+    Explorer.on_player_created(player)
+end)
+
 script.on_event(defines.events.on_gui_click, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.player_clicked_gui(event, player)

@@ -1,5 +1,8 @@
+local mod_gui = require("mod-gui")
+
 local explorer = {}
 
+explorer.open_gui_button = "yantm-open-explorer"
 explorer.root = "nc-formula-explorer"
 explorer.natural_height = 900
 explorer.camera_natural_height = 700
@@ -58,6 +61,17 @@ explorer.reactor_structure = {
 }
 
 ---@param player LuaPlayer
+function explorer.on_player_created(player)
+    local flow = mod_gui.get_button_flow(player)
+    flow.add{
+        type = "button",
+        name = explorer.open_gui_button,
+        caption = {"nuclearcraft.modname"},
+        tooltip = {"nuclearcraft.open-explorer"},
+    }
+end
+
+---@param player LuaPlayer
 function explorer.close(player)
     local gui = player.gui.screen[explorer.root]
     if gui then gui.destroy() end
@@ -71,7 +85,7 @@ function explorer.open(player)
         type = "frame",
         name=explorer.root,
         direction = "vertical",
-        style = "inset_frame_container_frame",
+        style = "frame",
     }
     container.auto_center = true
     local label_flow = container.add{
@@ -193,16 +207,38 @@ function explorer.open(player)
     inside_frame.style.natural_height = explorer.natural_height
     inside_frame.style.vertically_stretchable = true
     player.opened = container
+    local welcome_frame = inside_frame.add{
+        type = "frame",
+        style = "inside_deep_frame",
+    }
+    welcome_frame.style.vertically_stretchable = true
+    welcome_frame.style.horizontally_stretchable = true
+    local welcome_flow = welcome_frame.add{
+        type = "flow",
+        direction = "vertical",
+    }
+    welcome_flow.style.horizontal_align = "center"
+    welcome_flow.style.vertical_align = "center"
+    welcome_flow.style.vertically_stretchable = true
+    welcome_flow.style.horizontally_stretchable = true
+    welcome_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-welcome"}
+    }
+
 end
 
 ---@param event EventData.on_gui_click
 ---@param player LuaPlayer
 function explorer.player_clicked_gui(event, player)
     local root = player.gui.screen[explorer.root]
+    local elem_name = event.element.name
+    if elem_name == explorer.open_gui_button then
+        explorer.open(player)
+    end
     if not root then
         return
     end
-    local elem_name = event.element.name
     if elem_name == "explorer_gui_close_button" then
         explorer.close(player)
         return
