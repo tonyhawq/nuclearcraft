@@ -5,7 +5,7 @@ data:extend({
         flags = {"placeable-neutral", "player-creation"},
         icons = {
             {
-                icon = "__yantm__/graphics/entity/green.png",
+                icon = "__control-your-rods__/graphics/entity/green.png",
                 icon_size = 64,
             }
         },
@@ -19,25 +19,25 @@ data:extend({
         minable = {result="fuel-rod",mining_time=0.5},
         sprites = {
             north = {
-                filename = "__yantm__/graphics/entity/fuel-rod.png",
+                filename = "__control-your-rods__/graphics/entity/fuel-rod.png",
                 width = 64,
                 height = 64,
                 scale = 0.5,
             },
             east = {
-                filename = "__yantm__/graphics/entity/fuel-rod.png",
+                filename = "__control-your-rods__/graphics/entity/fuel-rod.png",
                 width = 64,
                 height = 64,
                 scale = 0.5,
             },
             south = {
-                filename = "__yantm__/graphics/entity/fuel-rod.png",
+                filename = "__control-your-rods__/graphics/entity/fuel-rod.png",
                 width = 64,
                 height = 64,
                 scale = 0.5,
             },
             west = {
-                filename = "__yantm__/graphics/entity/fuel-rod.png",
+                filename = "__control-your-rods__/graphics/entity/fuel-rod.png",
                 width = 64,
                 height = 64,
                 scale = 0.5,
@@ -58,12 +58,12 @@ data:extend({
         minable = {result="control-rod", mining_time=0.5},
         icons = {
             {
-                icon = "__yantm__/graphics/entity/yellow.png",
+                icon = "__control-your-rods__/graphics/entity/yellow.png",
                 icon_size = 64,
             }
         },
         picture = {
-            filename = "__yantm__/graphics/entity/control-rod.png",
+            filename = "__control-your-rods__/graphics/entity/control-rod.png",
             width = 64,
             height = 64,
             scale = 0.5,
@@ -82,12 +82,12 @@ data:extend({
         minable = {result="moderator-rod", mining_time=0.5},
         icons = {
             {
-                icon = "__yantm__/graphics/entity/purple.png",
+                icon = "__control-your-rods__/graphics/entity/purple.png",
                 icon_size = 64,
             }
         },
         picture = {
-            filename = "__yantm__/graphics/entity/moderator-rod.png",
+            filename = "__control-your-rods__/graphics/entity/moderator-rod.png",
             width = 64,
             height = 64,
             scale = 0.5,
@@ -105,12 +105,12 @@ data:extend({
         minable = {result="source-rod", mining_time=0.5},
         icons = {
             {
-                icon = "__yantm__/graphics/entity/red.png",
+                icon = "__control-your-rods__/graphics/entity/red.png",
                 icon_size = 64,
             }
         },
         picture = {
-            filename = "__yantm__/graphics/entity/source-rod.png",
+            filename = "__control-your-rods__/graphics/entity/source-rod.png",
             width = 64,
             height = 64,
             scale = 0.5,
@@ -129,12 +129,12 @@ data:extend({
         minable = {result="reflector-rod", mining_time=0.5},
         icons = {
             {
-                icon = "__yantm__/graphics/entity/lime.png",
+                icon = "__control-your-rods__/graphics/entity/lime.png",
                 icon_size = 64,
             }
         },
         picture = {
-            filename = "__yantm__/graphics/entity/reflector-rod.png",
+            filename = "__control-your-rods__/graphics/entity/reflector-rod.png",
             width = 64,
             height = 64,
             scale = 0.5,
@@ -154,7 +154,7 @@ data:extend({
         minable = {result="reactor-interface", mining_time=0.5},
         icons = {
             {
-                icon = "__yantm__/graphics/entity/lime.png",
+                icon = "__control-your-rods__/graphics/entity/lime.png",
                 icon_size = 64,
             }
         },
@@ -163,7 +163,7 @@ data:extend({
             layers =
             {
                 {
-                    filename = "__yantm__/graphics/entity/reactor-interface.png",
+                    filename = "__control-your-rods__/graphics/entity/reactor-interface.png",
                     priority = "extra-high",
                     width = 68,
                     height = 84,
@@ -179,7 +179,7 @@ data:extend({
     {
         type = "simple-entity",
         name = "open-fuel-rod",
-        icon = "__yantm__/graphics/entity/base-rod.png",
+        icon = "__control-your-rods__/graphics/entity/base-rod.png",
         flags = {"placeable-neutral"},
         minable = {mining_time=5},
         subgroup = "storage-remnants",
@@ -217,7 +217,7 @@ data:extend({
         selectable_in_game = true,
         picture =
         {
-            filename = "__yantm__/graphics/entity/rod-remnants.png",
+            filename = "__control-your-rods__/graphics/entity/rod-remnants.png",
             line_length = 1,
             width = 75,
             height = 75,
@@ -231,7 +231,7 @@ data:extend({
     {
         type = "corpse",
         name = "rod-remnants",
-        icon = "__yantm__/graphics/entity/base-rod.png",
+        icon = "__control-your-rods__/graphics/entity/base-rod.png",
         hidden_in_factoriopedia = true,
         flags = {"placeable-neutral", "building-direction-8-way", "not-on-map"},
         subgroup = "storage-remnants",
@@ -246,7 +246,7 @@ data:extend({
         remove_on_tile_placement = false,
         animation =
         {
-            filename = "__yantm__/graphics/entity/rod-remnants.png",
+            filename = "__control-your-rods__/graphics/entity/rod-remnants.png",
             line_length = 1,
             width = 75,
             height = 75,
@@ -288,7 +288,7 @@ data:extend({
     {
         type = "furnace",
         name = "cooling-tower",
-        icon = "__yantm__/graphics/icons/cooling-tower.png",
+        icon = "__control-your-rods__/graphics/icons/cooling-tower.png",
         icon_size = 32,
         flags = {"placeable-neutral", "placeable-player", "player-creation"},
         minable = {hardness = 0.2, mining_time = 0.5, result = "cooling-tower"},
@@ -351,7 +351,7 @@ data:extend({
                 layers=
                 {
                     {
-                        filename = "__yantm__/graphics/entity/cooling-tower-hr.png",
+                        filename = "__control-your-rods__/graphics/entity/cooling-tower-hr.png",
                         width = 308,
                         height = 310,
                         frame_count = 1,
@@ -359,7 +359,7 @@ data:extend({
                         scale = 0.505
                     },
                     {
-                        filename = "__yantm__/graphics/entity/cooling-tower-hr-shadow.png",
+                        filename = "__control-your-rods__/graphics/entity/cooling-tower-hr-shadow.png",
                         width = 308,
                         height = 310,
                         frame_count = 1,

@@ -10,7 +10,7 @@ data:extend({
         name = "nuclearcraft-thorium",
         icons = {
             {
-                icon = "__yantm__/graphics/technology/thorium.png",
+                icon = "__control-your-rods__/graphics/technology/thorium.png",
                 icon_size = 256,
             }
         },
@@ -68,7 +68,7 @@ data:extend({
         name = "nuclearcraft-plutonium",
         icons = {
             {
-                icon = "__yantm__/graphics/technology/plutonium.png",
+                icon = "__control-your-rods__/graphics/technology/plutonium.png",
                 icon_size = 256,
             }
         },
@@ -107,7 +107,7 @@ data:extend({
         name = "nuclearcraft-americium",
         icons = {
             {
-                icon = "__yantm__/graphics/technology/americium.png",
+                icon = "__control-your-rods__/graphics/technology/americium.png",
                 icon_size = 256,
             }
         },

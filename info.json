@@ -1,10 +1,10 @@
 {
-    "name": "yantm",
-    "version": "0.0.1",
+    "name": "control-your-rods",
+    "version": "0.2.0",
     "factorio_version": "2.0",
-    "title": "YANTM Fuel Rods",
+    "title": "Control Your Rods",
     "author": "unfunnyjoke27",
-    "description": "Construct reactors with control, moderator and fuel rods. Prevent meltdown with labrythine circuit contraptions.",
+    "description": "Nuclear overhaul: construct reactors with control, moderator and fuel rods. Prevent meltdown with labrythine circuit contraptions.",
     "homepage": "",
     "dependencies": [
       "base >= 2.0"

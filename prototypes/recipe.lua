@@ -121,7 +121,7 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/thorium-232.png",
+                icon = "__control-your-rods__/graphics/icons/thorium-232.png",
             }
         },
         main_product = "thorium-232",
@@ -149,10 +149,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/mox-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/mox-fuel-cell-light.png",
             },
         },
         main_product = "mox-fuel-cell",
@@ -175,10 +175,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/plutonium-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/plutonium-fuel-cell-light.png",
             },
         },
         main_product = "plutonium-fuel-cell",
@@ -201,10 +201,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/americium-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/americium-fuel-cell-light.png",
             },
         },
         main_product = "americium-fuel-cell",
@@ -230,10 +230,10 @@ data:extend({
         main_product = "",
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
         },
         ingredients =
@@ -259,10 +259,10 @@ data:extend({
         main_product = "",
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
         },
         ingredients =
@@ -287,10 +287,10 @@ data:extend({
         energy_required = 2,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/thorium-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/thorium-fuel-cell-light.png",
             },
         },
         main_product = "thorium-fuel-cell",
@@ -314,13 +314,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/thorium-fuel-cycle-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/thorium-fuel-cycle-cell-light.png",
             },
             {
-                icon = "__yantm__/graphics/icons/arrow.png",
+                icon = "__control-your-rods__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -344,13 +344,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/thorium-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/thorium-fuel-cell-light.png",
             },
             {
-                icon = "__yantm__/graphics/icons/arrow.png",
+                icon = "__control-your-rods__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -374,13 +374,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/mox-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/mox-fuel-cell-light.png",
             },
             {
-                icon = "__yantm__/graphics/icons/arrow.png",
+                icon = "__control-your-rods__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -405,13 +405,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/plutonium-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/plutonium-fuel-cell-light.png",
             },
             {
-                icon = "__yantm__/graphics/icons/arrow.png",
+                icon = "__control-your-rods__/graphics/icons/arrow.png",
             },
         },
         ingredients =
@@ -435,13 +435,13 @@ data:extend({
         energy_required = 15,
         icons = {
             {
-                icon = "__yantm__/graphics/icons/base-cell.png",
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
             },
             {
-                icon = "__yantm__/graphics/icons/americium-fuel-cell-light.png",
+                icon = "__control-your-rods__/graphics/icons/americium-fuel-cell-light.png",
             },
             {
-                icon = "__yantm__/graphics/icons/arrow.png",
+                icon = "__control-your-rods__/graphics/icons/arrow.png",
             },
         },
         ingredients =

@@ -1,6 +1,6 @@
 local rods = {}
 
-local constants = require("__yantm__.constants.constants")
+local constants = require("__control-your-rods__.constants.constants")
 
 rods.fuel_rods = constants.fuel_rods
 rods.control_rods = constants.control_rods
