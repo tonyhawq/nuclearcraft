@@ -15,6 +15,8 @@ data:extend({
         max_health = 500,
         collision_box = {{-0.4,-0.4},{0.4,0.4}},
         selection_box = {{-0.5,-0.5},{0.5,0.5}},
+        open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.43 },
+        close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.43 },    
         map_color = {94,140,99},
         minable = {result="fuel-rod",mining_time=0.5},
         sprites = {
@@ -171,6 +173,8 @@ data:extend({
         collision_box = {{-0.4,-0.4},{0.4,0.4}},
         selection_box = {{-0.5,-0.5},{0.5,0.5}},
         map_color = {0,0,255},
+        open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.43 },
+        close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.43 },    
         minable = {result="reactor-interface", mining_time=0.5},
         icons = {
             {
@@ -190,6 +194,15 @@ data:extend({
                     shift = util.by_pixel(0, -3),
                     scale = 0.5
                 },
+                {
+                    filename = "__base__/graphics/entity/infinity-chest/infinity-chest-shadow.png",
+                    priority = "extra-high",
+                    width = 116,
+                    height = 48,
+                    shift = util.by_pixel(12, 6),
+                    draw_as_shadow = true,
+                    scale = 0.5
+                }
             },
         },
     },
