@@ -74,6 +74,8 @@ script.on_event(defines.events.on_tick, function(event)
                     score = score - 1
                     k, v = next(fuel_rods, k)
                     if not v then k, v = next(fuel_rods, k) end
+                    ---@cast v FuelRod
+                    -- because this code only runs if fuel_rods contains something, v is guaranteed to have a value.
                     Rods.update_fuel_rod(v)
                     if reactor.melting_down then
                         break

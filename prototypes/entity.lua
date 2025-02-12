@@ -45,28 +45,48 @@ data:extend({
         }
     },
     {
-        type = "container",
+        type = "constant-combinator",
         name = "control-rod",
         flags = {"placeable-neutral", "player-creation"},
-        inventory_size = 1,
-        max_health = 500,
-        circuit_wire_max_distance = 16,
-        circuit_connector = table.deepcopy(data.raw.container["steel-chest"].circuit_connector),
-        collision_box = {{-0.4,-0.4},{0.4,0.4}},
-        selection_box = {{-0.5,-0.5},{0.5,0.5}},
-        map_color = {255,255,0},
-        minable = {result="control-rod", mining_time=0.5},
         icons = {
             {
                 icon = "__control-your-rods__/graphics/entity/yellow.png",
                 icon_size = 64,
             }
         },
-        picture = {
-            filename = "__control-your-rods__/graphics/entity/control-rod.png",
-            width = 64,
-            height = 64,
-            scale = 0.5,
+        activity_led_light_offsets = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"].activity_led_light_offsets),
+        circuit_wire_connection_points = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"].circuit_wire_connection_points),
+        circuit_wire_max_distance = 16,
+        max_health = 500,
+        collision_box = {{-0.4,-0.4},{0.4,0.4}},
+        selection_box = {{-0.5,-0.5},{0.5,0.5}},
+        map_color = {255,255,40},
+        minable = {result="fuel-rod",mining_time=0.5},
+        sprites = {
+            north = {
+                filename = "__control-your-rods__/graphics/entity/control-rod.png",
+                width = 64,
+                height = 64,
+                scale = 0.5,
+            },
+            east = {
+                filename = "__control-your-rods__/graphics/entity/control-rod.png",
+                width = 64,
+                height = 64,
+                scale = 0.5,
+            },
+            south = {
+                filename = "__control-your-rods__/graphics/entity/control-rod.png",
+                width = 64,
+                height = 64,
+                scale = 0.5,
+            },
+            west = {
+                filename = "__control-your-rods__/graphics/entity/control-rod.png",
+                width = 64,
+                height = 64,
+                scale = 0.5,
+            },
         }
     },
     {
@@ -271,7 +291,7 @@ local function make_composite(thing)
 end
 
 make_composite(data.raw["constant-combinator"]["fuel-rod"])
-make_composite(data.raw.container["control-rod"])
+make_composite(data.raw["constant-combinator"]["control-rod"])
 make_composite(data.raw.container["moderator-rod"])
 make_composite(data.raw.container["source-rod"])
 make_composite(data.raw.container["reflector-rod"])

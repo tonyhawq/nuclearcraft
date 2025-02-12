@@ -228,10 +228,6 @@ function rods.on_control_rod_built(entity)
     if not connector then
         error("Could not construct connector for control rod "..tostring(entity.name))
     end
-    local circuit = entity.surface.create_entity{name=rods.circuit_interface_name, position=entity.position, force=entity.force}
-    entity.get_wire_connector(defines.wire_connector_id.circuit_green, true).connect_to((circuit --[[@as LuaEntity]]).get_wire_connector(defines.wire_connector_id.circuit_green, true))
-    entity.get_wire_connector(defines.wire_connector_id.circuit_red, true).connect_to((circuit --[[@as LuaEntity]]).get_wire_connector(defines.wire_connector_id.circuit_red, true))
-    local section = ((circuit--[[@as LuaEntity]]).get_control_behavior() --[[@as LuaConstantCombinatorControlBehavior]]).get_section(1)
     local id = script.register_on_object_destroyed(entity)
     local control_rod = {
         type = "control",
@@ -239,8 +235,6 @@ function rods.on_control_rod_built(entity)
         heat_pipe = pipe,
         entity = entity,
         connector = connector,
-        circuit = circuit,
-        csection = section,
         reactor = nil,
         id = id,
         group = nil,
@@ -435,9 +429,6 @@ function rods.on_destroyed(event)
         end
         if rod.interface and rod.interface.valid then
             rod.interface.destroy()
-        end
-        if rod.circuit and rod.circuit.valid then
-            rod.circuit.destroy()
         end
         if rod.connector and rod.connector.valid then
             rod.connector.destroy()

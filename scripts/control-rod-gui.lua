@@ -229,6 +229,9 @@ function rod_gui.update(player)
                     caption = {"nuclearcraft.no-group"}
                 }
                 label.style.horizontal_align = "right"
+                if not rod.reactor then
+                    label.caption = {"nuclearcraft.no-reactor"}
+                end
             end
         else
             if root.frame.group_flow.no_group_flow.no_group_label then

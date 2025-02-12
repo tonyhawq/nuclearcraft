@@ -120,8 +120,6 @@
 ---@field connector LuaEntity
 ---@field reactor Reactor?
 ---@field id integer
----@field circuit LuaEntity?
----@field csection LuaLogisticSection?
 ---@field useg boolean
 ---@field group number?
 
