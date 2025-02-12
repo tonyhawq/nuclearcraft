@@ -92,7 +92,7 @@ data:extend({
         }
     },
     {
-        type = "container",
+        type = "simple-entity-with-owner",
         name = "moderator-rod",
         flags = {"placeable-neutral", "player-creation"},
         inventory_size = 1,
@@ -116,7 +116,7 @@ data:extend({
         }
     },
     {
-        type = "container",
+        type = "simple-entity-with-owner",
         name = "source-rod",
         flags = {"placeable-neutral", "player-creation"},
         inventory_size = 1,
@@ -139,7 +139,7 @@ data:extend({
         }
     },
     {
-        type = "container",
+        type = "simple-entity-with-owner",
         name = "reflector-rod",
         flags = {"placeable-neutral", "player-creation"},
         inventory_size = 1,
@@ -305,10 +305,10 @@ end
 
 make_composite(data.raw["constant-combinator"]["fuel-rod"])
 make_composite(data.raw["constant-combinator"]["control-rod"])
-make_composite(data.raw.container["moderator-rod"])
-make_composite(data.raw.container["source-rod"])
-make_composite(data.raw.container["reflector-rod"])
-make_composite(data.raw.container["reactor-interface"])
+make_composite(data.raw["simple-entity-with-owner"]["moderator-rod"])
+make_composite(data.raw["simple-entity-with-owner"]["source-rod"])
+make_composite(data.raw["simple-entity-with-owner"]["reflector-rod"])
+make_composite(data.raw["container"]["reactor-interface"])
 
 data:extend({
     {
