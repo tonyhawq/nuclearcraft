@@ -310,25 +310,25 @@ data:extend({
             {
                 production_type = "input",
                 volume = 1000,
-                pipe_covers = pipecoverspictures(),
+                pipe_covers = pipecoverspictures(), ---@diagnostic disable-line
                 pipe_connections =
                 {
-                    {flow_direction="input", direction = defines.direction.west, position = {-1, -1}},  --{position = {-2, -1},type = "input"},
-                    {flow_direction="input", direction = defines.direction.west, position = {-1, 1}},   --{position = {-2, 1},type = "input"},
-                    {flow_direction="input", direction = defines.direction.north, position = {-1, -1}}, --{position = {-1, -2},type = "input"},
-                    {flow_direction="input", direction = defines.direction.south, position = {-1, 1}}   --{position = {-1, 2},type = "input"}
+                    {flow_direction="input", direction = defines.direction.west --[[@as number]], position = {-1, -1}},  --{position = {-2, -1},type = "input"},
+                    {flow_direction="input", direction = defines.direction.west --[[@as number]], position = {-1, 1}},   --{position = {-2, 1},type = "input"},
+                    {flow_direction="input", direction = defines.direction.north --[[@as number]], position = {-1, -1}}, --{position = {-1, -2},type = "input"},
+                    {flow_direction="input", direction = defines.direction.south --[[@as number]], position = {-1, 1}}   --{position = {-1, 2},type = "input"}
                 }
             },
             {
                 production_type = "output",
                 volume = 1000,
-                pipe_covers = pipecoverspictures(),
+                pipe_covers = pipecoverspictures(), ---@diagnostic disable-line
                 pipe_connections =
                 {
-                    {flow_direction="output", direction = defines.direction.north, position = {1, -1}}, --{position = {1, -2},type = "output"},
-                    {flow_direction="output", direction = defines.direction.south, position = {1, 1}},  --{position = {1, 2},type = "output"},
-                    {flow_direction="output", direction = defines.direction.east, position = {1, -1}},  --{position = {2, -1},type = "output"},
-                    {flow_direction="output", direction = defines.direction.east, position = {1, 1}}    --{position = {2, 1},type = "output"}
+                    {flow_direction="output", direction = defines.direction.north --[[@as number]], position = {1, -1}}, --{position = {1, -2},type = "output"},
+                    {flow_direction="output", direction = defines.direction.south --[[@as number]], position = {1, 1}},  --{position = {1, 2},type = "output"},
+                    {flow_direction="output", direction = defines.direction.east --[[@as number]], position = {1, -1}},  --{position = {2, -1},type = "output"},
+                    {flow_direction="output", direction = defines.direction.east --[[@as number]], position = {1, 1}}    --{position = {2, 1},type = "output"}
                 }
             }
         },

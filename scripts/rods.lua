@@ -689,7 +689,7 @@ function rods.meltdown(rod)
             rod.reactor.melting_down = true
             for _, fuel_rod in pairs(fuel_rods) do
                 if fuel_rod.id ~= rod.id then
-                   rods.meltdown(fuel_rod)
+                    rods.meltdown(fuel_rod)
                 end
             end
         end
@@ -704,64 +704,64 @@ function rods.meltdown(rod)
             end
         end
         Remnants.spawn(
-            surface,
-            "entity.fuel-rod",
-            position.x,
-            position.y,
-            xvel,
-            (math.random(-100, 100)) / 600,
-            (math.random() - 0.5) / 2 + 0.5,
-            0,
-            math.random() / 20 * sign,
-            "cap-landed-explosion",
-            force --[[@as LuaForce]]
-        )
-        for i = 1, math.random(1, 5) do
-            Remnants.spawn(
-            surface,
-            "entity.small-remnants",
-            position.x,
-            position.y,
-            (math.random(-100, 100)) / 600,
-            (math.random() - 0.5) / 20,
-            math.random() / 10 + 0.5,
-            0,
-            math.random() / 20,
-            "cap-landed-explosion",
-            force --[[@as LuaForce]],
-            {x_scale = math.random(2, 4) / 8, y_scale = math.random(2, 4) / 8}
-        )
-        end
-        if is_source then
-            table.insert(rod.reactor.queued_spawns, {
-                name="atomic-rocket",
-                position = position,
-                force = game.forces.enemy,
-                target = position
-            })
-            rod.smoke_source = surface.create_entity{
-                name="nuclear-long-lasting-smoke-source",
-                position = position,
-            }
-        elseif math.random(0, 5) == 0 then
-            rod.smoke_source = surface.create_entity{
-                name="nuclear-long-lasting-smoke-source",
-                position = position,
-            }
-        end
-        table.insert(rod.reactor.queued_spawns, {
-            name="rod-meltdown-explosion",
-            position = position,
-            force = game.forces.enemy,
-        })
+        surface,
+        "entity.fuel-rod",
+        position.x,
+        position.y,
+        xvel,
+        (math.random(-100, 100)) / 600,
+        (math.random() - 0.5) / 2 + 0.5,
+        0,
+        math.random() / 20 * sign,
+        "cap-landed-explosion",
+        force --[[@as LuaForce]]
+    )
+    for i = 1, math.random(1, 5) do
+        Remnants.spawn(
+        surface,
+        "entity.small-remnants",
+        position.x,
+        position.y,
+        (math.random(-100, 100)) / 600,
+        (math.random() - 0.5) / 20,
+        math.random() / 10 + 0.5,
+        0,
+        math.random() / 20,
+        "cap-landed-explosion",
+        force --[[@as LuaForce]],
+        {x_scale = math.random(2, 4) / 8, y_scale = math.random(2, 4) / 8}
+    )
+end
+if is_source then
+    table.insert(rod.reactor.queued_spawns, {
+        name="atomic-rocket",
+        position = position,
+        force = game.forces.enemy,
+        target = position
+    })
+    rod.smoke_source = surface.create_entity{
+        name="nuclear-long-lasting-smoke-source",
+        position = position,
+    }
+elseif math.random(0, 5) == 0 then
+    rod.smoke_source = surface.create_entity{
+        name="nuclear-long-lasting-smoke-source",
+        position = position,
+    }
+end
+table.insert(rod.reactor.queued_spawns, {
+    name="rod-meltdown-explosion",
+    position = position,
+    force = game.forces.enemy,
+})
+end
+if is_source then
+    for _, queued_spawn in pairs(rod.reactor.queued_spawns) do
+        rod.reactor.surface.create_entity(queued_spawn)
     end
-    if is_source then
-        for _, queued_spawn in pairs(rod.reactor.queued_spawns) do
-            rod.reactor.surface.create_entity(queued_spawn)
-        end
-        rods.destroy_reactor(rod.reactor)
-    end
-    rod.entity.destroy()
+    rods.destroy_reactor(rod.reactor)
+end
+rod.entity.destroy()
 end
 
 ---@param rod FuelRod
@@ -886,7 +886,7 @@ function rods.update_fuel_rod(rod)
     end
     fw[1] = in_fast
     fw_average = (fw_average + in_fast) / fws
-]]
+    ]]
     rod.in_slow_flux = (rod.in_slow_flux + in_slow) / 2
     rod.in_fast_flux = (rod.in_fast_flux + in_fast) / 2
     local character = Formula.characteristics[rod.fuel.character_name]
@@ -1124,27 +1124,23 @@ end
 
 ---@param source Interface
 function rods.create_reactor(source)
-    game.print("Creating reactor...")
     if source.reactor then
         rods.destroy_reactor(source.reactor)
     end
     local neighbors = {[source.entity.unit_number] = source.connector}
     local working = {source.entity}
-    local antispam = 0
     local as = 0
     while first(working) do
         as = as + 1
-        game.print(as)
         local k, v = next(working)
+        ---@cast k number
+        ---@cast v LuaEntity
         working[k] = nil
-        game.print("getting neighbors of "..tostring(v.unit_number).." "..tostring(as)..tostring(serpent.line(working)))
         local found_neighbors = rods.get_neighbors(v)
         for _, neighbor in pairs(found_neighbors) do
             if not neighbors[neighbor.unit_number] then
                 table.insert(working, neighbor)
                 neighbors[neighbor.unit_number] = neighbor
-                antispam = antispam + 1
-                game.print("Found new neighbor "..tostring(antispam))
             end
         end
     end
@@ -1216,7 +1212,6 @@ end
 ---@param config table
 ---@return table<integer, Connector>
 function rods.find_in_line(config)
-    game.print("Finding in line... "..math.random())
     local source = config.source --[[@as LuaEntity]]
     local surface = source.surface
     local pos = source.position
@@ -1228,34 +1223,32 @@ function rods.find_in_line(config)
     local found = {}
     local bounces = 0
     for i = 1, config.length --[[@as integer]] do
-    x = x + dx
-    y = y + dy
-    local position = {x,y}
-    game.print("[gps="..position[1]..","..position[2].."] "..math.random())
-    local entities = surface.find_entities_filtered{position=position, name=rods.connector_name}
-    local entity = entities[1]
-    if entity then
-        if config.condition and config.condition(entity) then
-            break
-        end
-        local reflector = rods.owns_reflector(entity)
-        if reflector then
-            if bounces >= reflector.bounce_limit then
+        x = x + dx
+        y = y + dy
+        local position = {x,y}
+        local entities = surface.find_entities_filtered{position=position, name=rods.connector_name}
+        local entity = entities[1]
+        if entity then
+            if config.condition and config.condition(entity) then
                 break
             end
-            game.print("reflecting...")
-            angle = angle + math.pi
-            dx = math.sin(angle)
-            dy = math.cos(angle)
-            config.length = math.min(config.length, reflector.reflection_distance + i)
-            bounces = bounces + 1
+            local reflector = rods.owns_reflector(entity)
+            if reflector then
+                if bounces >= reflector.bounce_limit then
+                    break
+                end
+                angle = angle + math.pi
+                dx = math.sin(angle)
+                dy = math.cos(angle)
+                config.length = math.min(config.length, reflector.reflection_distance + i)
+                bounces = bounces + 1
+            else
+                found[i] = storage.connectors[entities[1].unit_number]
+            end
         else
-            found[i] = storage.connectors[entities[1].unit_number]
+            break
         end
-    else
-        break
     end
-end
 return found
 end
 
