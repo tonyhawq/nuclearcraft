@@ -1114,7 +1114,13 @@ function rods.unset_interface_group(interface)
 end
 
 ---@param source Interface
-function rods.create_reactor(source)
+---@param iteration number?
+---@return boolean
+---@nodiscard
+function rods.create_reactor(source, iteration)
+    if (iteration or 0) > 10 then
+        return false
+    end
     if source.reactor then
         rods.destroy_reactor(source.reactor)
     end
@@ -1180,7 +1186,7 @@ function rods.create_reactor(source)
         ::continue::
     end
     if not is_valid_reactor then
-        return rods.create_reactor(source)
+        return rods.create_reactor(source, (iteration or 0) + 1)
     end
     rods.create_affectors(reactor)
     storage.reactors[reactor.id] = reactor
@@ -1189,6 +1195,7 @@ function rods.create_reactor(source)
     reactor.add_score = math.max(fuel_rods, 1) / 60
     reactor.add_cscore = math.max(control_rods, 1) / 15
     reactor.add_iscore = math.max(table_size(reactor.controllers), 1) / 15
+    return true
 end
 
 ---@param entity LuaEntity

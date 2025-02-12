@@ -386,12 +386,21 @@ function interface_gui.player_clicked_gui(event, player)
         return
     end
     if event.element.name == "reactor-assemble" then
-        Rods.create_reactor(storage.interfaces[root.tags.id])
+        local result = Rods.create_reactor(storage.interfaces[root.tags.id])
         interface_gui.update(player)
+        if result then
+            player.create_local_flying_text{text={"nuclearcraft.reactor-assembly-succeded"}, create_at_cursor=true}
+        else
+            player.create_local_flying_text{text={"nuclearcraft.reactor-assembly-failed"}, create_at_cursor=true}
+            player.play_sound{path="utility/cannot_build"}
+        end
     elseif event.element.name == "reactor-disassemble" then
         local reactor = storage.interfaces[root.tags.id]--[[@as Interface]].reactor
         if reactor then
             Rods.destroy_reactor(reactor)
+            player.create_local_flying_text{text={"nuclearcraft.reactor-disassembly-succeded"}, create_at_cursor=true}
+        else
+            player.play_sound{path="utility/cannot_build"}
         end
         interface_gui.update(player)
     elseif event.element.name == "is_group_controller" then
