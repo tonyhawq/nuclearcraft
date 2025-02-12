@@ -564,11 +564,28 @@ function explorer.on_gui_selection_state_changed(elem)
         local slider = max_slider_flow[elem_type.."_x_max"]
         local textfield = max_slider_flow[elem_type.."_x_max_textfield"]
         local want_max = explorer.formula_specifications[elem.selected_index][2]
-        slider.slider_value = want_max
-        textfield.text = tostring(want_max)
+        local slider_name = slider.name
+        local textfield_name = textfield.name
+        local slider_min = slider.get_slider_minimum()
+        max_slider_flow.clear()
+        max_slider_flow.add{
+            type = "slider",
+            name = slider_name,
+            minimum_value = slider_min,
+            maximum_value = want_max,
+            value = want_max,
+        }
+        max_slider_flow.add{
+            type = "textfield",
+            name = textfield_name,
+            numeric = true,
+            allow_decimal = false,
+            allow_negative = false,
+            lose_focus_on_confirm = true,
+            text = tostring(want_max),
+            style = "slider_value_textfield",
+        }
         Cameras.set_graph_x_range(graph, graph.x_min, want_max)
-        slider.set_slider_minimum_maximum(slider.get_slider_minimum(), want_max)
-        Cameras.set_graph_integration_arg(graph, elem.selected_index)
     end
 end
 
