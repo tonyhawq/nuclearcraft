@@ -1,5 +1,3 @@
-local mod_gui = require("mod-gui")
-
 local explorer = {}
 
 explorer.open_gui_button = "yantm-open-explorer"
@@ -61,25 +59,16 @@ explorer.reactor_structure = {
 }
 
 ---@param player LuaPlayer
-function explorer.on_player_created(player)
-    local flow = mod_gui.get_button_flow(player)
-    flow.add{
-        type = "button",
-        name = explorer.open_gui_button,
-        caption = {"nuclearcraft.modname"},
-        tooltip = {"nuclearcraft.open-explorer"},
-    }
-end
-
----@param player LuaPlayer
 function explorer.close(player)
     local gui = player.gui.screen[explorer.root]
     if gui then gui.destroy() end
+    player.set_shortcut_toggled("control-your-rods-explorer", false)
 end
 
 ---@param player LuaPlayer
 function explorer.open(player)
     explorer.close(player)
+    player.set_shortcut_toggled("control-your-rods-explorer", true)
     local gui = player.gui.screen
     local container = gui.add{
         type = "frame",

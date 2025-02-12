@@ -41,6 +41,7 @@ require("prototypes.signal")
 require("prototypes.recipe")
 require("prototypes.item")
 require("prototypes.technology")
+require("prototypes.shortcut")
 NUCLEARCRAFT_ALLOWED_FUELS = {
     "uranium-fuel-cell",
     "thorium-fuel-cell",

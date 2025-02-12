@@ -5,7 +5,7 @@ local desc = {
     "",
     {"entity-description.fuel-rod"},
     "\n",
-    {"nuclearcraft.accepted-fuels-label"}
+    {"nuclearcraft.accepted-fuels-label"},
 }
 local working = desc
 for k, fuel in pairs(NUCLEARCRAFT_ALLOWED_FUELS) do
@@ -19,5 +19,6 @@ for k, fuel in pairs(NUCLEARCRAFT_ALLOWED_FUELS) do
         table.insert(working, "\n")
     end
 end
+table.insert(desc, {"nuclearcraft.newline-shortcut"})
 
 fuel_rod.localised_description = desc

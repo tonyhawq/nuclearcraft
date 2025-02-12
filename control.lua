@@ -44,6 +44,13 @@ script.on_configuration_changed(function()
     Cooling.setup()
 end)
 
+script.on_event(defines.events.on_lua_shortcut, function (event)
+    if event.prototype_name == "control-your-rods-explorer" then
+        local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+        Explorer.open(player)
+    end
+end)
+
 script.on_event(defines.events.on_tick, function(event)
     Remnants.update()
     Cooling.update()
@@ -185,14 +192,6 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
     local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
     InterfaceGUI.on_gui_switch_state_changed(event, player)
     RodGUI.on_gui_switch_state_changed(event, player)
-end)
-
-script.on_event(defines.events.on_player_created, function (event)
-    local player = game.get_player(event.player_index)
-    if not player then
-        return
-    end
-    Explorer.on_player_created(player)
 end)
 
 script.on_event(defines.events.on_player_mined_entity, function (event)
