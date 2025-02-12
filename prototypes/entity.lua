@@ -2,7 +2,7 @@ data:extend({
     {
         type = "constant-combinator",
         name = "fuel-rod",
-        flags = {"placeable-neutral", "player-creation", "not-rotatable"},
+        flags = {"placeable-neutral", "player-creation"},
         icons = {
             {
                 icon = "__control-your-rods__/graphics/entity/green.png",
