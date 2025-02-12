@@ -560,6 +560,7 @@ function explorer.on_gui_selection_state_changed(elem)
             control_flow[elem_type.."_"..arg_name.."_autogenmodify_slider"].enabled = enabled
             control_flow[elem_type.."_"..arg_name.."_autogenmodify_textfield"].enabled = enabled
         end
+        Cameras.set_graph_integration_arg(graph, elem.selected_index)
         local max_slider_flow = elem.parent.parent[elem_type.."_x_max_flow"]
         local slider = max_slider_flow[elem_type.."_x_max"]
         local textfield = max_slider_flow[elem_type.."_x_max_textfield"]
