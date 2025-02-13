@@ -10,13 +10,6 @@ Cameras = require("__control-your-rods__.scripts.camera-surface")
 Explorer = require("__control-your-rods__.scripts.formula-explorer")
 require("__control-your-rods__.scripts.remote")
 
-commands.add_command("explore", "", function (command)
-    if command.player_index ~= nil then
-        local player = game.get_player(command.player_index)
-        Explorer.open(player--[[@as LuaPlayer]])
-    end
-end)
-
 script.on_init(function()
     Rods.setup()
     Schedule.setup()
