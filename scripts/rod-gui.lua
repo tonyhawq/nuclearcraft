@@ -395,18 +395,6 @@ function rod_gui.open(player, entity)
     }
     efficiency.style.horizontally_stretchable = true
     penalty.style.horizontally_stretchable = true
-    inside_frame.add{
-        type = "button",
-        name = "see_affectors",
-        style = "button",
-        caption = {"nuclearcraft.see-affectors"}
-    }
-    inside_frame.add{
-        type = "button",
-        name = "visualize_flux",
-        style = "button",
-        caption = {"nuclearcraft.visualize-flux"}
-    }
     container.flow.frame["minimum_slider_flow"].tags = {value = storage.rods[container.tags.id].wants_min or 0}
     container.flow.frame["maximum_slider_flow"].tags = {value = storage.rods[container.tags.id].wants_max or 0}
     rod_gui.create_slider_flow("min", container, 0, 5, container.flow.frame.maximum_slider_flow.tags.value --[[@as number]])
