@@ -3,6 +3,7 @@ Version: 0.2.1
 Date: 2025-2-12
   Changes:
     - Removes control rod 0.1 minimum insertion.
+    - Adds more detail to fuel rods / control rods formula page.
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2025-2-12
