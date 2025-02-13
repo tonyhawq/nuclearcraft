@@ -1,5 +1,71 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.1
-Date: 2025.03.02
+Version: 0.2.0
+Date: 2025-2-12
   Features:
-    - Inital release
+    - 2.0 port
+    - Adds new fuels: Thorium, Plutonium, MOX, and Americium.
+  Changes:
+    - Complete overhaul of how flux, power and temperature is calculated.
+    - Removes stirling engines and coolant.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.10
+Date: 2023-11-14
+  Features:
+    - Insulated heat pipe, transfers heat better and transfers more heat
+  Changes:
+    - Stirling engine is in a later technology
+    - Idle power is 1.2MW
+    - Overheat temp is the same, but meltdown temp is 3000c
+    - Coolant heaters require 1100c heat
+    - Efficiency goes up past ~1000c, to a maximum of around 40x (requires unstable reactor setup)
+  Bugfixes:
+    - delta is applied correctly
+    - Core slag buildup is MUCH slower
+---------------------------------------------------------------------------------------------------
+Version: 0.1.9
+  Bugfixes:
+    - actually works
+    - why didnt yall tell me :(  
+---------------------------------------------------------------------------------------------------
+Version: 0.1.8
+  Changes:
+    - Reactors radiate heat slower
+---------------------------------------------------------------------------------------------------
+Version: 0.1.7
+  Bugfixes:
+    - Efficiency is fixed to actually work
+---------------------------------------------------------------------------------------------------
+Version: 0.1.6
+  Changes:
+    - Reactors are slower to spin up/down
+    - Fuel consumed and burnt fuel produced is shown in production stats
+---------------------------------------------------------------------------------------------------
+Version: 0.1.5
+  Changes:
+    - Coolant heaters transfer enough heat to run 4 in a line
+    - Coolant heaters need to be at 400c to run
+    - Maximum efficiency is now 18x (80MW power output, temperature between 580-1000c, no fuel efficiency coefficient)
+---------------------------------------------------------------------------------------------------
+Version: 0.1.4
+  Changes:
+    - Misc fixes in control stage
+  Features:
+    - Stirling engine, requires no water for a 25% efficiency loss
+---------------------------------------------------------------------------------------------------
+Version: 0.1.3
+  Changes:
+    - Misc fixes in control stage
+  Features:
+    - Remnants spawn on reactor meltdown
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
+  Changes:
+    - Control rod insertion is more granular (0-1000 instead of 0-100)
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+  Bugfixes:
+    - Fixed reactivity delta having fuel efficiency calculations applied to it
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+  Features:
+    - First version
