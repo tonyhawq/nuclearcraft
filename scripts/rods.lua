@@ -521,7 +521,7 @@ function rods.update_control_rod(rod)
         return
     end
     local target = rod.entity.get_signal({type="virtual", name="signal-S"}, defines.wire_connector_id.circuit_green, defines.wire_connector_id.circuit_red)
-    rod.insertion = math.max(math.min(target / 1000, 1), 0.1)
+    rod.insertion = math.max(math.min(target / 1000, 1), 0)
 end
 
 ---@param rod FuelRod
