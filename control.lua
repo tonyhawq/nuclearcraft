@@ -10,6 +10,8 @@ Cameras = require("__control-your-rods__.scripts.camera-surface")
 Explorer = require("__control-your-rods__.scripts.formula-explorer")
 require("__control-your-rods__.scripts.remote")
 
+--TODO: allow ctrl-c ctrl-v to save fuel request config.
+
 script.on_init(function()
     Rods.setup()
     Schedule.setup()

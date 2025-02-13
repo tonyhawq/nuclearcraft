@@ -213,7 +213,7 @@ data:extend({
         type = "simple-entity",
         name = "open-fuel-rod",
         icon = "__control-your-rods__/graphics/entity/base-rod.png",
-        flags = {"placeable-neutral"},
+        flags = {},
         minable = {mining_time=5},
         subgroup = "storage-remnants",
         max_health = 2000,
