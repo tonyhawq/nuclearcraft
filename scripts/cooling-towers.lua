@@ -26,6 +26,7 @@ function cooling.update()
         storage.coolk = nil
         return
     end
+    ---@cast cooler CoolingTower
     storage.coolk = coolk
     local smoke = cooler.smoke --[[@as LuaEntity?]]
     local entity = cooler.entity --[[@as LuaEntity]]
