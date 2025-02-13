@@ -167,6 +167,7 @@ end)
 
 script.on_event(defines.events.on_gui_text_changed, function(event)
     Explorer.gui_text_changed(event.element, event.text)
+    RodGUI.gui_text_changed(event.element, game.get_player(event.player_index) --[[@as LuaPlayer]])
 end)
 
 script.on_event(defines.events.on_gui_selection_state_changed, function(event)

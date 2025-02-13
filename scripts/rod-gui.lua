@@ -448,14 +448,14 @@ function rod_gui.player_changed_elem(event, player)
             event.element.elem_value = Rods.default_signal[names_to_values[event.element.name]]
         end
         if rod_gui.signal_present(rod, event.element.elem_value --[[@as SignalID]]) then
-            event.element.elem_value = rod[names_to_values[event.element.name]]
-            player.play_sound{path="utility/cannot_build"}
-            player.create_local_flying_text{text={"nuclearcraft.signal-present"}, create_at_cursor=true}
-            return
-        end
-        Rods.set_signal(rod, names_to_values[event.element.name], event.element.elem_value--[[@as SignalID]])
-        rod_gui.update(player)
+        event.element.elem_value = rod[names_to_values[event.element.name]]
+        player.play_sound{path="utility/cannot_build"}
+        player.create_local_flying_text{text={"nuclearcraft.signal-present"}, create_at_cursor=true}
+        return
     end
+    Rods.set_signal(rod, names_to_values[event.element.name], event.element.elem_value--[[@as SignalID]])
+    rod_gui.update(player)
+end
 end
 
 ---@param as "min"|"max"
@@ -528,6 +528,72 @@ function rod_gui.update_minimum_slider(root)
             root.flow.frame.maximum_slider_flow.clear()
             rod_gui.create_slider_flow("max", root, value, max_slider_slider_maximum, max_slider_slider_value)
         end
+    end
+end
+
+---@param elem LuaGuiElement
+---@param player LuaPlayer
+function rod_gui.gui_text_changed(elem, player)
+    local root = player.gui.screen[rod_gui.root]
+    if not root or not root.tags or not root.tags.id then
+        return
+    end
+    if elem.name == "maximum_fuel_request_slider_textbox" then
+        if not tonumber(elem.text) then
+            return
+        end
+        local num = math.max(math.floor(tonumber(elem.text) --[[@as number]]), 0)
+        local max_slider = root.flow.frame.maximum_slider_flow.maximum_fuel_request_slider --[[@as LuaGuiElement]]
+        local max_slider_min = max_slider.get_slider_minimum()
+        local max_slider_max = max_slider.get_slider_maximum()
+        if num > max_slider.get_slider_maximum() then
+            root.flow.frame.maximum_slider_flow.clear()
+            root.flow.frame.maximum_slider_flow.tags = {value=num}
+            rod_gui.create_slider_flow("max", root, max_slider_min, num, num)
+            rod_gui.update_slider_textboxes(root)
+        elseif num < max_slider.get_slider_minimum() then
+            root.flow.frame.maximum_slider_flow.clear()
+            root.flow.frame.maximum_slider_flow.tags = {value=max_slider_min}
+            rod_gui.create_slider_flow("max", root, max_slider_min, max_slider_max, max_slider_min)
+            rod_gui.update_slider_textboxes(root)
+            root.flow.frame.maximum_slider_flow.maximum_fuel_request_slider_textbox.text = tostring(num)
+        else
+            root.flow.frame.maximum_slider_flow.clear()
+            root.flow.frame.maximum_slider_flow.tags = {value=num}
+            rod_gui.create_slider_flow("max", root, max_slider_min, max_slider_max, num)
+            rod_gui.update_slider_textboxes(root)
+        end
+        root.flow.frame.maximum_slider_flow.maximum_fuel_request_slider_textbox.focus()
+    elseif elem.name == "minimum_fuel_request_slider_textbox" then
+        if not tonumber(elem.text) then
+            return
+        end
+        local num = math.floor(tonumber(elem.text) --[[@as number]])
+        local min_slider = root.flow.frame.minimum_slider_flow.minimum_fuel_request_slider --[[@as LuaGuiElement]]
+        local min_slider_min = min_slider.get_slider_minimum()
+        local min_slider_max = min_slider.get_slider_maximum()
+        root.flow.frame.minimum_slider_flow.tags = {value=math.max(num, 0)}
+        if num > min_slider.get_slider_maximum() then
+            rod_gui.update_minimum_slider(root)
+            root.flow.frame.minimum_slider_flow.clear()
+            rod_gui.create_slider_flow("min", root, 0, min_slider_max, min_slider_max)
+            rod_gui.update_slider_textboxes(root)
+        elseif num < 0 then
+            num = 0
+            min_slider.slider_value = 0
+            rod_gui.update_minimum_slider(root)
+            root.flow.frame.minimum_slider_flow.clear()
+            rod_gui.create_slider_flow("min", root, 0, 5, 0)
+        else
+            min_slider.slider_value = num
+            local min_min = min_slider.get_slider_minimum()
+            local min_max = min_slider.get_slider_maximum()
+            rod_gui.update_minimum_slider(root)
+            root.flow.frame.minimum_slider_flow.clear()
+            rod_gui.create_slider_flow("min", root, min_min, min_max, num)
+            rod_gui.update_slider_textboxes(root)
+        end
+        root.flow.frame.minimum_slider_flow.minimum_fuel_request_slider_textbox.focus()
     end
 end
 
@@ -804,34 +870,34 @@ function rod_gui.update(player)
         local target_fast = character.target_fast_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature)
         local target_slow = character.target_slow_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature) 
         flux_percentage_in = ((rod.in_slow_flux + rod.in_fast_flux) / math.max(
-            target_fast +
-            target_slow, 1)
-        )
-        root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "η", string.format("%.3f", target_fast + target_slow), "η"}
-        flux_percentage_out = (rod.slow_flux + rod.fast_flux) / (character.max_slow_flux + character.max_fast_flux)
-    else
-
-    end
-    rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
-    rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
-    root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "η"}
-    if rod.power > 0 then
-        root.flow.frame.power.value = rod.power / (character or {max_power = 40}).max_power
-        root.flow.frame.burnup.value = rod.power / rod.efficiency / rod.power
-        local power, power_unit = select_unit(rod.power * 1000000)
-        local burnup, burnup_unit = select_unit(rod.power / rod.efficiency * 1000000)
-        root.flow.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power), power_unit}
-        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
-    else
-        root.flow.frame.power.value = 0
-        root.flow.frame.power.caption = {"nuclearcraft.power-production"}
-        root.flow.frame.burnup.value = 0
-        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
-    end
-    if not rod.reactor then
-        status.status_led.sprite = "utility.status_inactive"
-        status.status_label.caption = {"nuclearcraft.no-reactor"}
-    end
+        target_fast +
+        target_slow, 1)
+    )
+    root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "η", string.format("%.3f", target_fast + target_slow), "η"}
+    flux_percentage_out = (rod.slow_flux + rod.fast_flux) / (character.max_slow_flux + character.max_fast_flux)
+else
+    
+end
+rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
+rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
+root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "η"}
+if rod.power > 0 then
+    root.flow.frame.power.value = rod.power / (character or {max_power = 40}).max_power
+    root.flow.frame.burnup.value = rod.power / rod.efficiency / rod.power
+    local power, power_unit = select_unit(rod.power * 1000000)
+    local burnup, burnup_unit = select_unit(rod.power / rod.efficiency * 1000000)
+    root.flow.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power), power_unit}
+    root.flow.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
+else
+    root.flow.frame.power.value = 0
+    root.flow.frame.power.caption = {"nuclearcraft.power-production"}
+    root.flow.frame.burnup.value = 0
+    root.flow.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
+end
+if not rod.reactor then
+    status.status_led.sprite = "utility.status_inactive"
+    status.status_label.caption = {"nuclearcraft.no-reactor"}
+end
 end
 
 ---@param root LuaGuiElement
