@@ -221,13 +221,13 @@ end
 ---@param player LuaPlayer
 function explorer.player_clicked_gui(event, player)
     local root = player.gui.screen[explorer.root]
-    local elem_name = event.element.name
-    if elem_name == explorer.open_gui_button then
-        explorer.open(player)
-    end
     if not root then
         return
     end
+    if not event.element.valid then
+        return
+    end
+    local elem_name = event.element.name
     if elem_name == "explorer_gui_close_button" then
         explorer.close(player)
         return
