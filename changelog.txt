@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2025-2-14
+  Features:
+    - Extended explanations on how graphs work.
+    - Added labels for multi return functions
+    - Added axis labels
+---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 2025-2-13
   Bugfixes:
