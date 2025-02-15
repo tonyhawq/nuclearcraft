@@ -329,6 +329,51 @@ function explorer.explore_formula(root)
     })
     footer_flow.add{
         type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-but-how-do-they-work-header"},
+        style = "subheader_caption_label",
+    }
+    lbfix(footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-but-how-do-they-work-explanation"},
+    })
+    footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-power-header"},
+        style = "subheader_caption_label",
+    }
+    lbfix(footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-power-explanation"},
+    })
+    footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-flux-header"},
+        style = "subheader_caption_label",
+    }
+    lbfix(footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-flux-explanation"},
+    })
+    footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-efficiency-header"},
+        style = "subheader_caption_label",
+    }
+    lbfix(footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-efficiency-explanation"},
+    })
+    footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-example-header"},
+        style = "subheader_caption_label",
+    }
+    lbfix(footer_flow.add{
+        type = "label",
+        caption = {"nuclearcraft.explorer-formula-graphs-example-explanation"},
+    })
+    footer_flow.add{
+        type = "label",
         caption = {"nuclearcraft.explorer-formula-common-formulas-header"},
         style = "subheader_caption_label",
     }
@@ -344,9 +389,9 @@ function explorer.reset_inside_frame(inside_frame)
 end
 
 explorer.formula_specifications = {
-    {"flux", 40, 1},
-    {"power", 40, 1},
-    {"efficiency", 2500, 3},
+    {"flux", 40, 1, "input"},
+    {"power", 40, 1, "output"},
+    {"efficiency", 2500, 3, "input"},
 }
 
 ---@param root LuaGuiElement
@@ -388,7 +433,13 @@ function explorer.explore_certain_formula(root, elem_name)
             height = 250,
             x_min = 0,
             x_max = formula[2],
+            return_labels = Formula.return_labels[using]
         }
+        camera_cfg.tags = {input=formula[4]}
+        Cameras.rename_graph_axis(camera_cfg, {
+            x={"nuclearcraft.graph-label-"..camera_cfg.tags.input.."-"..explorer.reverse_val_to_arg_map[Formula.argname_to_argnum(character[using.."_significant_variable"])]},
+            y=camera_cfg.y_axis_label
+        })
         tags[using] = camera_cfg.name
         local camera_frame = frame.add{
             type = "frame",
@@ -561,6 +612,10 @@ function explorer.on_gui_selection_state_changed(elem)
             control_flow[elem_type.."_"..arg_name.."_autogenmodify_textfield"].enabled = enabled
         end
         Cameras.set_graph_integration_arg(graph, elem.selected_index)
+        Cameras.rename_graph_axis(graph, {
+            x={"nuclearcraft.graph-label-"..graph.tags.input.."-"..explorer.reverse_val_to_arg_map[elem.selected_index]},
+            y=graph.y_axis_label
+        })
         local max_slider_flow = elem.parent.parent[elem_type.."_x_max_flow"]
         local slider = max_slider_flow[elem_type.."_x_max"]
         local textfield = max_slider_flow[elem_type.."_x_max_textfield"]

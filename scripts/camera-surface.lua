@@ -262,6 +262,7 @@ function csurf.get_or_create_graph(cfg)
             width = width,
             height = height,
             origin = origin,
+            return_labels = cfg.return_labels,
             base = base,
             surface = surf,
             line_width = line_width,
@@ -334,6 +335,7 @@ function csurf.destroy_cursor(graph)
         "cursor_up",
         "cursor_down",
         "cursor_text",
+        "cursor_return_text"
     }
     for _, destroy in pairs(to_destroy) do
         if graph.rendered[destroy] then
@@ -467,6 +469,17 @@ function csurf.move_graph_cursor(graph, by)
         vertical_alignment = vertical_anchor,
         scale = 4,
     }
+    if graph.return_count > 1 and graph.return_labels and graph.return_labels[graph.selected_return + 1] then
+        graph.rendered.cursor_return_text = rendering.draw_text{
+            color = {255, 255, 255},
+            surface = graph.surface,
+            target = {graph_cursor_x + offset, graph_cursor_y + vertical_offset + 2 * vertical_offset},
+            text = graph.return_labels[graph.selected_return + 1],
+            alignment = anchor,
+            vertical_alignment = vertical_anchor,
+            scale = 4,
+        }
+    end
 end
 
 function csurf.map_cursor_pos(graph, val)

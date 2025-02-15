@@ -10,6 +10,10 @@ local mlog = math.log
 
 local placeholder = 1
 
+formula.return_labels = {
+    flux = {{"nuclearcraft.slow-flux"}, {"nuclearcraft.fast-flux"}},
+}
+
 ---@type table<string, FuelCharacteristic>
 formula.characteristics = {
     ["uranium"] = {
