@@ -4,7 +4,7 @@ data:extend({
     {
         type = "recipe",
         name = "fuel-rod",
-        enabled = true,
+        enabled = false,
         main_product = "fuel-rod",
         ingredients = {
             {type="item", name="steel-plate", amount=100},
@@ -19,7 +19,7 @@ data:extend({
     {
         type = "recipe",
         name = "control-rod",
-        enabled = true,
+        enabled = false,
         main_product = "control-rod",
         ingredients = {
             {type="item", name="steel-plate", amount=100},
@@ -35,7 +35,7 @@ data:extend({
     {
         type = "recipe",
         name = "moderator-rod",
-        enabled = true,
+        enabled = false,
         main_product = "moderator-rod",
         ingredients = {
             {type="item", name="steel-plate", amount=100},
@@ -50,7 +50,7 @@ data:extend({
     {
         type = "recipe",
         name = "reflector-rod",
-        enabled = true,
+        enabled = false,
         main_product = "reflector-rod",
         ingredients = {
             {type="item", name="steel-plate", amount=100},
@@ -66,7 +66,7 @@ data:extend({
     {
         type = "recipe",
         name = "reactor-interface",
-        enabled = true,
+        enabled = false,
         main_product = "reactor-interface",
         ingredients = {
             {type="item", name="steel-plate", amount=100},
