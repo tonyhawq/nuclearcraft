@@ -55,10 +55,12 @@ script.on_event(defines.events.on_tick, function(event)
             local score = reactor.score
             score = score + reactor.add_score
             if score > 0 then
-                for _, controller in pairs(reactor.controllers) do
-                    Rods.update_controller(controller)
+                local reactor_controllers = reactor.controllers
+                for _, controller in pairs(reactor_controllers) do
+                    Rods.update_controller(controller, reactor)
                 end
-                for _, control_rod in pairs(reactor.control_rods) do
+                local reactor_control_rods = reactor.control_rods
+                for _, control_rod in pairs(reactor_control_rods) do
                     Rods.update_control_rod(control_rod)
                 end
                 reactor.fuels = {}

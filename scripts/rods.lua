@@ -56,7 +56,6 @@ function rods.setup()
     storage.connectors = storage.connectors or {} --[[@as table<Connector>]]
     storage.moderators = storage.moderators or {} --[[@as table<Moderator>]]
     storage.reactors = storage.reactors or {} --[[@as table<Reactor>]]
-    storage.controllers = storage.controllers or {} --[[@as table<Controller>]]
     storage.open_rods = storage.open_rods or {} --[[@as table<OpenFuelRod>]]
     storage.last_reactor_id = storage.last_reactor_id or 0
 end
@@ -68,23 +67,6 @@ function rods.create_connector(connector, owner)
         entity = connector,
         owner = owner
     } --[[@as Connector]]
-end
-
-function rods.on_controller_built(entity)
-    local connector = entity.surface.create_entity{name=rods.connector_name, position=entity.position, force=entity.force}
-    if not connector then
-        error("Could not construct connector for fuel rod "..tostring(entity.name))
-    end
-    local id = script.register_on_object_destroyed(entity)
-    local controller = {
-        id = id,
-        type = "controller",
-        entity = entity,
-        group = nil,
-        connector = connector,
-    } --[[@as Controller]]
-    storage.controllers[id] = controller
-    rods.create_connector(connector, controller)
 end
 
 ---@param rod FuelRod
@@ -335,7 +317,6 @@ end
 
 rods.on_built_by_name = {
     ["reactor-interface"] = rods.on_interface_built,
-    ["reactor-controller"] = rods.on_controller_built,
 }
 
 rods.void = {}
@@ -971,9 +952,10 @@ function rods.get_available_dumps(reactor)
 end
 
 ---@param interface Interface
-function rods.update_controller(interface)
+---@param reactor Reactor
+function rods.update_controller(interface, reactor)
     interface.insertion = interface.entity.get_signal(interface.gsig, defines.wire_connector_id.circuit_green, defines.wire_connector_id.circuit_red)
-    interface.reactor--[[@as Reactor]].insertions[interface.group].val = math.min(math.max(interface.insertion / 1000, 0), 1)
+    reactor--[[@as Reactor]].insertions[interface.group].val = math.min(math.max(interface.insertion / 1000, 0), 1)
 end
 
 ---@param reactor Reactor
@@ -1015,9 +997,9 @@ end
 ---@type AddConnectorToReactorParam
 rods.add_connector_to_reactor = {
     interface = function (connector, reactor)
+        connector.owner.reactor = reactor
         local interface = connector.owner
         ---@cast interface Interface
-        interface.reactor = reactor
         if interface.input then
             reactor.inputs[interface.id] = interface
         elseif interface.output then
@@ -1221,32 +1203,32 @@ function rods.find_in_line(config)
     local found = {}
     local bounces = 0
     for i = 1, config.length --[[@as integer]] do
-        x = x + dx
-        y = y + dy
-        local position = {x,y}
-        local entities = surface.find_entities_filtered{position=position, name=rods.connector_name}
-        local entity = entities[1]
-        if entity then
-            if config.condition and config.condition(entity) then
-                break
-            end
-            local reflector = rods.owns_reflector(entity)
-            if reflector then
-                if bounces >= reflector.bounce_limit then
-                    break
-                end
-                angle = angle + math.pi
-                dx = math.sin(angle)
-                dy = math.cos(angle)
-                config.length = math.min(config.length, reflector.reflection_distance + i)
-                bounces = bounces + 1
-            else
-                found[i] = storage.connectors[entities[1].unit_number]
-            end
-        else
+    x = x + dx
+    y = y + dy
+    local position = {x,y}
+    local entities = surface.find_entities_filtered{position=position, name=rods.connector_name}
+    local entity = entities[1]
+    if entity then
+        if config.condition and config.condition(entity) then
             break
         end
+        local reflector = rods.owns_reflector(entity)
+        if reflector then
+            if bounces >= reflector.bounce_limit then
+                break
+            end
+            angle = angle + math.pi
+            dx = math.sin(angle)
+            dy = math.cos(angle)
+            config.length = math.min(config.length, reflector.reflection_distance + i)
+            bounces = bounces + 1
+        else
+            found[i] = storage.connectors[entities[1].unit_number]
+        end
+    else
+        break
     end
+end
 return found
 end
 
@@ -1365,6 +1347,7 @@ end
 
 ---@param reactor Reactor
 function rods.destroy_reactor(reactor)
+    storage.reactors[reactor.id] = nil
     for _, rod in pairs(reactor.fuel_rods) do
         rod.reactor = nil
         rods.deactivate_fuel_rod(rod)
@@ -1394,7 +1377,6 @@ function rods.destroy_reactor(reactor)
     reactor.interfaces = {}
     reactor.controllers = {}
     reactor.group_controllers = false
-    storage.reactors[reactor.id] = nil
 end
 
 ---@param from FuelRod
