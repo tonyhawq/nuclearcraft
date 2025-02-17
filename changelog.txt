@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.4
+Date: 2025-2-17
+  Bugfixes:
+    - Fixes crash on group controller being destroyed leading to update_controller being passed a controller without a reactor... somehow? not sure how this happened.
+    - Fixes recipes being always available.
+    - Adds cooling tower recipe.
+    - Adds cooling tower to nuclear reactors research.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.3
 Date: 2025-2-14
   Features:

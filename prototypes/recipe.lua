@@ -3,6 +3,20 @@
 data:extend({
     {
         type = "recipe",
+        name = "cooling-tower",
+        enabled = false,
+        main_product = "cooling-tower",
+        ingredients = {
+            {type="item", name="heat-exchanger", amount=1},
+            {type="item", name="concrete", amount=50},
+            {type="item", name="advanced-circuit", amount=25},
+        },
+        results = {
+            {type="item", name="cooling-tower", amount=1}
+        }
+    },
+    {
+        type = "recipe",
         name = "fuel-rod",
         enabled = false,
         main_product = "fuel-rod",
