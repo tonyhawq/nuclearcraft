@@ -997,6 +997,7 @@ end
 ---@type AddConnectorToReactorParam
 rods.add_connector_to_reactor = {
     interface = function (connector, reactor)
+        reactor.connectors[connector.entity.unit_number] = connector
         connector.owner.reactor = reactor
         local interface = connector.owner
         ---@cast interface Interface
@@ -1013,22 +1014,27 @@ rods.add_connector_to_reactor = {
         reactor.interfaces[interface.id] = interface
     end,
     control = function (connector, reactor)
+        reactor.connectors[connector.entity.unit_number] = connector
         connector.owner.reactor = reactor
         reactor.control_rods[connector.owner--[[@as ControlRod]].id] = connector.owner --[[@as ControlRod]]
     end,
     fuel = function (connector, reactor)
+        reactor.connectors[connector.entity.unit_number] = connector
         connector.owner.reactor = reactor
         reactor.fuel_rods[connector.owner--[[@as FuelRod]].id] = connector.owner --[[@as FuelRod]]
     end,
     source = function (connector, reactor)
+        reactor.connectors[connector.entity.unit_number] = connector
         connector.owner.reactor = reactor
         reactor.sources[connector.owner--[[@as Source]].id] = connector.owner --[[@as Source]]
     end,
     reflector = function (connector, reactor)
+        reactor.connectors[connector.entity.unit_number] = connector
         connector.owner.reactor = reactor
         reactor.reflectors[connector.owner--[[@as Reflector]].id] = connector.owner --[[@as Reflector]]
     end,
     mod = function (connector, reactor)
+        reactor.connectors[connector.entity.unit_number] = connector
         connector.owner.reactor = reactor
         reactor.moderators[connector.owner --[[@as Moderator]].id] = connector.owner --[[@as Moderator]]
     end,
@@ -1150,7 +1156,9 @@ function rods.create_reactor(source, iteration)
         iscore = 0,
         add_iscore = 0,
         queued_spawns = {},
-        surface = source.entity.surface
+        surface = source.entity.surface,
+        connectors = {},
+        position = source.entity.position,
     } --[[@as Reactor]]
     rods.add_connector_to_reactor[source.type](storage.connectors[source.connector.unit_number], reactor)
     local is_valid_reactor = true
@@ -1377,6 +1385,85 @@ function rods.destroy_reactor(reactor)
     reactor.interfaces = {}
     reactor.controllers = {}
     reactor.group_controllers = false
+end
+
+function rods.on_configuration_changed()
+    rods.setup()
+    local reactors_to_fix = {}
+    for _, reactor in pairs(storage.reactors) do
+        table.insert(reactors_to_fix, reactor)
+    end
+    for _, reactor in pairs(reactors_to_fix) do
+        ---@cast reactor Reactor
+        ---@type Interface?
+        local valid_reactor_source = nil
+        local position = reactor.position
+        local surface = (reactor.surface or {name="nauvis"}).name
+        local table_to_iterate_over = {}
+        local had_invalid_entity = false
+        local function add_to_iterate(rod)
+            if rod.connector.valid then
+                table.insert(table_to_iterate_over, storage.connectors[rod.connector.unit_number])
+            else
+                had_invalid_entity = true
+            end
+        end
+        if reactor.connectors then
+            table_to_iterate_over = reactor.connectors
+        else
+            for _, rod in pairs(reactor.fuel_rods) do
+                add_to_iterate(rod)
+            end
+            for _, rod in pairs(reactor.control_rods) do
+                add_to_iterate(rod)
+            end
+            for _, rod in pairs(reactor.reflectors) do
+                add_to_iterate(rod)
+            end
+            for _, rod in pairs(reactor.moderators) do
+                add_to_iterate(rod)
+            end
+            for _, rod in pairs(reactor.interfaces) do
+                add_to_iterate(rod)
+            end
+        end
+        for _, connector in pairs(table_to_iterate_over) do
+            if connector.entity.valid then
+                if not position then
+                    position = connector.entity.position
+                end
+                if connector.owner and connector.owner.entity.valid and connector.owner.type == "interface" then
+                    valid_reactor_source = connector.owner --[[@as Interface]]
+                end
+            end
+            if not connector.entity.valid then
+                had_invalid_entity = true
+            end
+            if connector.owner then
+                if not connector.owner.reactor then
+                    had_invalid_entity = true
+                end
+                if not connector.owner.entity.valid then
+                    had_invalid_entity = true
+                end
+                if not connector.owner.connector.valid then
+                    had_invalid_entity = true
+                end
+            end
+        end
+        if had_invalid_entity then
+            rods.destroy_reactor(reactor)
+            if valid_reactor_source and rods.create_reactor(valid_reactor_source) then
+                game.print({"nuclearcraft.migration-recreated-reactor", valid_reactor_source.reactor.position.x, valid_reactor_source.reactor.position.y, surface}, {skip=defines.print_skip.never, game_state=true})
+            else
+                if position then
+                    game.print({"nuclearcraft.migration-destroyed-reactor-with-position", position.x, position.y, surface}, {skip=defines.print_skip.never, game_state=true})
+                else
+                    game.print({"nuclearcraft.migration-destroyed-reactor"}, {skip=defines.print_skip.never, game_state=true})
+                end
+            end    
+        end
+    end
 end
 
 ---@param from FuelRod

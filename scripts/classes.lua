@@ -183,6 +183,7 @@
 ---@field inventory LuaInventory
 
 ---@class (exact) Reactor
+---@field connectors Connector[]
 ---@field fuel_rods FuelRod[]
 ---@field control_rods ControlRod[]
 ---@field moderators Moderator[]
@@ -213,6 +214,7 @@
 ---@field ck number?
 ---@field ik number?
 ---@field surface LuaSurface
+---@field position MapPosition
 ---@field queued_spawns table[]
 ---@field meltdown_source_pos MapPosition?
 

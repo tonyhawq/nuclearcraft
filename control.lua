@@ -39,6 +39,10 @@ script.on_configuration_changed(function()
     Cooling.setup()
 end)
 
+script.on_configuration_changed(function (event)
+    Rods.on_configuration_changed()
+end)
+
 script.on_event(defines.events.on_lua_shortcut, function (event)
     if event.prototype_name == "control-your-rods-explorer" then
         local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
