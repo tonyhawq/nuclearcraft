@@ -3,6 +3,7 @@ table.insert(nuclear_power.effects, {type="unlock-recipe", recipe="reactor-inter
 table.insert(nuclear_power.effects, {type="unlock-recipe", recipe="fuel-rod"})
 table.insert(nuclear_power.effects, {type="unlock-recipe", recipe="control-rod"})
 table.insert(nuclear_power.effects, {type="unlock-recipe", recipe="moderator-rod"})
+table.insert(nuclear_power.effects, {type="unlock-recipe", recipe="reflector-rod"})
 table.insert(nuclear_power.effects, {type="unlock-recipe", recipe="cooling-tower"})
 data:extend({
     {
