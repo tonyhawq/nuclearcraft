@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.7
+Date: 2025-2-19
+  Features:
+    - Crushed coal item - crafted with 0.33 coal and has 1MJ of fuel value.
+  Changes:
+    - Crushed coal is now used to smelt graphite.
+  Bugfixes:
+    - Fixes only graphite being craftable in furnaces.
+    - Adds more robust migrations to fix old broken saves.
+    - Hopefully fixes GCI issue which was caused by 1. not checking if a rod was part of a different reactor, so not destroying that reactor 2. not checking in destroy_reactor if a rod had a different reactor than the one being destroyed (to clean it up) and 3. the migrations not catching rods being shared between multiple different reactors.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.6
 Date: 2025-2-18
   Bugfixes:
