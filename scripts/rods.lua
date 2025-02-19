@@ -1112,6 +1112,9 @@ function rods.create_reactor(source, iteration)
     if source.reactor then
         rods.destroy_reactor(source.reactor)
     end
+    if source.reactor then
+        error("Removing reactor from source failed.")
+    end
     local neighbors = {[source.entity.unit_number] = source.connector}
     local working = {source.entity}
     local as = 0
@@ -1159,6 +1162,7 @@ function rods.create_reactor(source, iteration)
         surface = source.entity.surface,
         connectors = {},
         position = source.entity.position,
+        valid = true,
     } --[[@as Reactor]]
     rods.add_connector_to_reactor[source.type](storage.connectors[source.connector.unit_number], reactor)
     local is_valid_reactor = true
@@ -1168,6 +1172,12 @@ function rods.create_reactor(source, iteration)
         if not connector then
             is_valid_reactor = false
             neighbor.destroy()
+        end
+        if not connector.owner then
+            goto continue
+        end
+        if connector.owner.reactor and connector.owner.reactor.id ~= reactor.id then
+            rods.destroy_reactor(connector.owner.reactor)
         end
         if not is_valid_reactor then
             goto continue
@@ -1355,28 +1365,40 @@ end
 
 ---@param reactor Reactor
 function rods.destroy_reactor(reactor)
+    reactor.valid = false
     storage.reactors[reactor.id] = nil
-    for _, rod in pairs(reactor.fuel_rods) do
+    local function clear_reactor_from(rod)
+        if rod.reactor and rod.reactor.valid then
+            if rod.reactor.id ~= reactor.id then
+                -- this should never happen. it has happened on this save. ???
+                game.print("Destroying rod has revealed duplicate reactor fields", {skip=defines.print_skip.never})
+                rods.on_configuration_changed("called")
+                rods.destroy_reactor(rod.reactor)
+            end
+        end
         rod.reactor = nil
+    end
+    for _, rod in pairs(reactor.fuel_rods) do
+        clear_reactor_from(rod)
         rods.deactivate_fuel_rod(rod)
     end
     for _, rod in pairs(reactor.control_rods) do
-        rod.reactor = nil
+        clear_reactor_from(rod)
     end
     for _, source in pairs(reactor.sources) do
-        source.reactor = nil
+        clear_reactor_from(source)
     end
     for _, moderator in pairs(reactor.moderators) do
-        moderator.reactor = nil
+        clear_reactor_from(moderator)
     end
     for _, reflector in pairs(reactor.reflectors) do
-        reflector.reactor = nil
+        clear_reactor_from(reflector)
     end
     for _, interface in pairs(reactor.interfaces) do
-        interface.reactor = nil
+        clear_reactor_from(interface)
     end
     for _, controller in pairs(reactor.controllers) do
-        controller.reactor = nil
+        clear_reactor_from(controller)
     end
     reactor.fuel_rods = {}
     reactor.control_rods = {}
@@ -1387,12 +1409,19 @@ function rods.destroy_reactor(reactor)
     reactor.group_controllers = false
 end
 
-function rods.on_configuration_changed()
+---@param version string
+function rods.on_configuration_changed(version)
+    version = tostring(version)
+    local text = "migration"
+    if version == "called" then
+        text = "called"
+    end
     rods.setup()
     local reactors_to_fix = {}
     for _, reactor in pairs(storage.reactors) do
         table.insert(reactors_to_fix, reactor)
     end
+    local counts_by_id = {}
     for _, reactor in pairs(reactors_to_fix) do
         ---@cast reactor Reactor
         ---@type Interface?
@@ -1401,67 +1430,93 @@ function rods.on_configuration_changed()
         local surface = (reactor.surface or {name="nauvis"}).name
         local table_to_iterate_over = {}
         local had_invalid_entity = false
-        local function add_to_iterate(rod)
+        local function add_to_table(table_, rod)
             if rod.connector.valid then
-                table.insert(table_to_iterate_over, storage.connectors[rod.connector.unit_number])
+                table.insert(table_, storage.connectors[rod.connector.unit_number])
             else
                 had_invalid_entity = true
             end
         end
-        if reactor.connectors then
-            table_to_iterate_over = reactor.connectors
-        else
-            for _, rod in pairs(reactor.fuel_rods) do
-                add_to_iterate(rod)
-            end
-            for _, rod in pairs(reactor.control_rods) do
-                add_to_iterate(rod)
-            end
-            for _, rod in pairs(reactor.reflectors) do
-                add_to_iterate(rod)
-            end
-            for _, rod in pairs(reactor.moderators) do
-                add_to_iterate(rod)
-            end
-            for _, rod in pairs(reactor.interfaces) do
-                add_to_iterate(rod)
-            end
+        for _, rod in pairs(reactor.fuel_rods) do
+            add_to_table(table_to_iterate_over, rod)
         end
-        for _, connector in pairs(table_to_iterate_over) do
-            if connector.entity.valid then
+        for _, rod in pairs(reactor.control_rods) do
+            add_to_table(table_to_iterate_over, rod)
+        end
+        for _, rod in pairs(reactor.reflectors) do
+            add_to_table(table_to_iterate_over, rod)
+        end
+        for _, rod in pairs(reactor.moderators) do
+            add_to_table(table_to_iterate_over, rod)
+        end
+        for _, rod in pairs(reactor.interfaces) do
+            add_to_table(table_to_iterate_over, rod)
+        end
+        for _, rod in pairs(table_to_iterate_over) do
+            ---@cast rod FuelRod|ControlRod|Interface|Moderator|Reflector
+            if rod.entity.valid then
                 if not position then
-                    position = connector.entity.position
+                    position = rod.entity.position
                 end
-                if connector.owner and connector.owner.entity.valid and connector.owner.type == "interface" then
-                    valid_reactor_source = connector.owner --[[@as Interface]]
+                if rod.type == "interface" then
+                    valid_reactor_source = rod --[[@as Interface]]
                 end
             end
-            if not connector.entity.valid then
+            if not rod.entity.valid or not rod.connector or not rod.connector.valid then
                 had_invalid_entity = true
             end
-            if connector.owner then
-                if not connector.owner.reactor then
-                    had_invalid_entity = true
-                end
-                if not connector.owner.entity.valid then
-                    had_invalid_entity = true
-                end
-                if not connector.owner.connector.valid then
-                    had_invalid_entity = true
-                end
+            if not rod.reactor then
+                had_invalid_entity = true
+            end
+            if not rod.entity.valid then
+                had_invalid_entity = true
+            end
+            if not rod.id then
+                had_invalid_entity = true
+            else
+                counts_by_id[rod.id] = counts_by_id[rod.id] or {}
+                table.insert(counts_by_id[rod.reactor])    
             end
         end
         if had_invalid_entity then
             rods.destroy_reactor(reactor)
             if valid_reactor_source and rods.create_reactor(valid_reactor_source) then
-                game.print({"nuclearcraft.migration-recreated-reactor", valid_reactor_source.reactor.position.x, valid_reactor_source.reactor.position.y, surface}, {skip=defines.print_skip.never, game_state=true})
+                game.print({"nuclearcraft."..text.."-recreated-reactor", valid_reactor_source.reactor.position.x, valid_reactor_source.reactor.position.y, surface}, {skip=defines.print_skip.never, game_state=true})
             else
                 if position then
-                    game.print({"nuclearcraft.migration-destroyed-reactor-with-position", position.x, position.y, surface}, {skip=defines.print_skip.never, game_state=true})
+                    game.print({"nuclearcraft."..text.."-destroyed-reactor-with-position", position.x, position.y, surface}, {skip=defines.print_skip.never, game_state=true})
                 else
-                    game.print({"nuclearcraft.migration-destroyed-reactor"}, {skip=defines.print_skip.never, game_state=true})
+                    game.print({"nuclearcraft."..text.."-destroyed-reactor"}, {skip=defines.print_skip.never, game_state=true})
                 end
-            end    
+            end
+        end
+    end
+    local function has_more_than_one_valid_reactor(tabl)
+        local had_two = false
+        local had_one = false
+        for _, reactor in pairs(tabl) do
+            if reactor.valid then
+                if had_one then
+                    had_two = true
+                end
+                had_one = true
+            end
+        end
+        return had_two
+    end
+    for id, reactors in pairs(counts_by_id) do
+        if has_more_than_one_valid_reactor(reactors) then
+            -- all of these reactors must be purged
+            for _, reactor in pairs(reactors) do
+                local position = reactor.position
+                local surface = (reactor.surface or {name="nauvis"}).name
+                rods.destroy_reactor(reactor)
+                if position then
+                    game.print({"nuclearcraft."..text.."-destroyed-reactor-with-position", position.x, position.y, surface}, {skip=defines.print_skip.never, game_state=true})
+                else
+                    game.print({"nuclearcraft."..text.."-destroyed-reactor"}, {skip=defines.print_skip.never, game_state=true})
+                end
+            end
         end
     end
 end

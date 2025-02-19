@@ -217,6 +217,7 @@
 ---@field position MapPosition
 ---@field queued_spawns table[]
 ---@field meltdown_source_pos MapPosition?
+---@field valid boolean
 
 ---@class Debris
 ---@field sprite SpritePath
