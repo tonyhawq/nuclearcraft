@@ -1452,6 +1452,9 @@ function rods.on_configuration_changed(version)
         for _, rod in pairs(reactor.interfaces) do
             add_to_table(table_to_iterate_over, rod)
         end
+        if table_size(table_to_iterate_over) == 0 then
+            had_invalid_entity = true
+        end
         for _, rod in pairs(table_to_iterate_over) do
             ---@cast rod FuelRod|ControlRod|Interface|Moderator|Reflector
             if rod.entity.valid then
