@@ -113,6 +113,22 @@ data:extend({
     },
     {
         type = "recipe",
+        name = "crushed-coal",
+        category = "crafting",
+        enabled = true,
+        energy_required = 0.5,
+        main_product = "crushed-coal",
+        ingredients =
+        {
+            {type="item", name="coal", amount=1},
+        },
+        results =
+        {
+            {type="item", name="crushed-coal", amount=3},
+        },
+    },
+    {
+        type = "recipe",
         name = "graphite",
         category = "smelting",
         enabled = true,
@@ -120,7 +136,7 @@ data:extend({
         main_product = "graphite",
         ingredients =
         {
-            {type="item", name="coal", amount=1},
+            {type="item", name="crushed-coal", amount=6},
         },
         results =
         {

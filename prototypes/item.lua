@@ -112,6 +112,20 @@ data:extend({
     },
     {
         type = "item",
+        name = "crushed-coal",
+        icons = {
+            {
+                icon = "__control-your-rods__/graphics/icons/crushed-coal.png",
+            }
+        },
+        subgroup = "raw-material",
+        order = "a[smelting]-d[graphite]-a",
+        fuel_value = "1MJ",
+        fuel_category = "chemical",
+        stack_size = 50,
+    },
+    {
+        type = "item",
         name = "graphite",
         icons = {
             {
@@ -119,7 +133,7 @@ data:extend({
             }
         },
         subgroup = "raw-material",
-        order = "a[smelting]-d[graphite]",
+        order = "a[smelting]-d[graphite]-b",
         fuel_value = "5MJ",
         fuel_category = "chemical",
         stack_size = 50,
