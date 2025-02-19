@@ -40,7 +40,7 @@ script.on_configuration_changed(function()
 end)
 
 script.on_configuration_changed(function (event)
-    Rods.on_configuration_changed()
+    Rods.on_configuration_changed(event.new_version)
 end)
 
 script.on_event(defines.events.on_lua_shortcut, function (event)
