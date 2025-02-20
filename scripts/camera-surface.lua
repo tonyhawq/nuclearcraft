@@ -16,7 +16,7 @@ function csurf.create_camera_surface()
         end
         return
     end
-    local already_made = game.get_surface("camera=surface")
+    local already_made = game.get_surface("camera-surface")
     if already_made then
         storage.camera_surface = already_made
         storage.camera_surface_index = storage.camera_surface.index

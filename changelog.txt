@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.8
+Date: 2025-2-20
+  Bugfixes:
+    - Camera setup now checks if camera-surface exists, but storage.camera_surface does not.
+    - script.on_config_changed is no longer called twice.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.7
 Date: 2025-2-19
   Features:
