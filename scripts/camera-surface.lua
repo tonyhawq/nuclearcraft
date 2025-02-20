@@ -11,6 +11,15 @@ csurf.graph_y_pos = 100
 
 function csurf.create_camera_surface()
     if storage.camera_surface then
+        if not storage.camera_surface_index then
+            storage.camera_surface_index = storage.camera_surface.index
+        end
+        return
+    end
+    local already_made = game.get_surface("camera=surface")
+    if already_made then
+        storage.camera_surface = already_made
+        storage.camera_surface_index = storage.camera_surface.index
         return
     end
     storage.camera_surface = game.create_surface("camera-surface")
