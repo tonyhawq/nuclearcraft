@@ -32,15 +32,12 @@ script.on_nth_tick(15, function (_)
     end
 end)
 
-script.on_configuration_changed(function()
+script.on_configuration_changed(function(event)
     Rods.setup()
+    Rods.on_configuration_changed(event.new_version)
     Schedule.setup()
     Remnants.setup()
     Cooling.setup()
-end)
-
-script.on_configuration_changed(function (event)
-    Rods.on_configuration_changed(event.new_version)
 end)
 
 script.on_event(defines.events.on_lua_shortcut, function (event)
