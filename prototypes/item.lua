@@ -172,6 +172,7 @@ data:extend({
             {"nuclearcraft.character-thorium-cycle-efficiency"},
             {"nuclearcraft.not-self-starting"},
             "[item=depleted-thorium-fuel-cycle-cell]",
+            "[shortcut=cyr-explorer-shortcut-formula-thorium-cycle] [color=#55adff]See in explorer..[/color]"
         },
         subgroup = "fuel-cells",
         order = "ab",
@@ -198,6 +199,7 @@ data:extend({
             {"nuclearcraft.character-thorium-efficiency"},
             {"nuclearcraft.not-self-starting"},
             "[item=depleted-thorium-fuel-cell]",
+            "[shortcut=cyr-explorer-shortcut-formula-thorium] [color=#55adff]See in explorer..[/color]"
         },
         subgroup = "fuel-cells",
         order = "ac",
@@ -224,6 +226,7 @@ data:extend({
             {"nuclearcraft.character-plutonium-efficiency"},
             {"nuclearcraft.self-starting"},
             "[item=depleted-plutonium-fuel-cell]",
+            "[shortcut=cyr-explorer-shortcut-formula-plutonium] [color=#55adff]See in explorer..[/color]"
         },
         subgroup = "fuel-cells",
         order = "ae",
@@ -250,6 +253,7 @@ data:extend({
             {"nuclearcraft.character-mox-efficiency"},
             {"nuclearcraft.self-starting"},
             "[item=depleted-mox-fuel-cell]",
+            "[shortcut=cyr-explorer-shortcut-formula-mox] [color=#55adff]See in explorer..[/color]"
         },
         subgroup = "fuel-cells",
         order = "ad",
@@ -276,6 +280,7 @@ data:extend({
             {"nuclearcraft.character-americium-efficiency"},
             {"nuclearcraft.self-starting"},
             "[item=depleted-americium-fuel-cell]",
+            "[shortcut=cyr-explorer-shortcut-formula-americium] [color=#55adff]See in explorer..[/color]"
         },
         subgroup = "fuel-cells",
         order = "af",
@@ -445,4 +450,5 @@ data.raw.item["uranium-fuel-cell"].localised_description = {
     {"nuclearcraft.character-uranium-efficiency"},
     {"nuclearcraft.self-starting"},
     "[item=depleted-uranium-fuel-cell]",
+    "[shortcut=cyr-explorer-shortcut-formula-uranium] [color=#55adff]See in explorer..[/color]"
 }

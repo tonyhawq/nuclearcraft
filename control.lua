@@ -44,6 +44,12 @@ script.on_event(defines.events.on_lua_shortcut, function (event)
     if event.prototype_name == "control-your-rods-explorer" then
         local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
         Explorer.open(player)
+        return
+    end
+    local name = event.prototype_name:gsub("^cyr%-explorer%-shortcut%-", "")
+    if Explorer.has_page(name) then
+        local player = game.get_player(event.player_index) --[[@as LuaPlayer]]
+        return Explorer.open_page(name, player)
     end
 end)
 

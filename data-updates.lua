@@ -19,6 +19,6 @@ for k, fuel in pairs(NUCLEARCRAFT_ALLOWED_FUELS) do
         table.insert(working, "\n")
     end
 end
-table.insert(desc, {"nuclearcraft.newline-shortcut"})
+table.insert(desc, {"nuclearcraft.newline-fuel-rod-shortcut"})
 
 fuel_rod.localised_description = desc

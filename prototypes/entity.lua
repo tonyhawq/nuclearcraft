@@ -178,7 +178,7 @@ data:extend({
         minable = {result="reactor-interface", mining_time=0.5},
         icons = {
             {
-                icon = "__control-your-rods__/graphics/entity/lime.png",
+                icon = "__control-your-rods__/graphics/icons/reactor-interface.png",
                 icon_size = 64,
             }
         },

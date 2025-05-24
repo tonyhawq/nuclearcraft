@@ -701,6 +701,12 @@ end
 function explorer.fuel_rod_tab(root)
     local inside_frame = root.flow.inside_frame
     explorer.reset_inside_frame(inside_frame)
+    inside_frame.add{
+        type = "label",
+        name = "fuel-rod-label",
+        caption = {"nuclearcraft.explorer-fuel-rod-label"},
+        style = "frame_title"
+    }
 
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -790,7 +796,7 @@ function explorer.control_rod_tab(root)
         type = "label",
         name = "control-rod-label",
         caption = {"nuclearcraft.explorer-control-rod-label"},
-        style = "subheader_caption_label"
+        style = "frame_title"
     }
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -859,7 +865,7 @@ function explorer.moderator_tab(root)
         type = "label",
         name = "moderator-rod-label",
         caption = {"nuclearcraft.explorer-moderator-rod-label"},
-        style = "subheader_caption_label"
+        style = "frame_title"
     }
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -903,7 +909,7 @@ function explorer.reflector_tab(root)
         type = "label",
         name = "reflector-rod-label",
         caption = {"nuclearcraft.explorer-reflector-rod-label"},
-        style = "subheader_caption_label"
+        style = "frame_title"
     }
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -965,7 +971,7 @@ function explorer.reactor_tab(root)
         type = "label",
         name = "reactor-label",
         caption = {"nuclearcraft.explorer-reactor-label"},
-        style = "subheader_caption_label"
+        style = "frame_title"
     }
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -1026,7 +1032,7 @@ function explorer.flux_tab(root)
         type = "label",
         name = "neutron-flux-label",
         caption = {"nuclearcraft.explorer-neutron-flux-label"},
-        style = "subheader_caption_label"
+        style = "frame_title"
     }
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -1109,7 +1115,7 @@ function explorer.interface_tab(root)
         type = "label",
         name = "interface-label",
         caption = {"nuclearcraft.explorer-interface-label"},
-        style = "subheader_caption_label"
+        style = "frame_title"
     }
     local camera_frame = inside_frame.add{
         type = "frame",
@@ -1155,7 +1161,7 @@ function explorer.interface_tab(root)
     }
     lbfix(footer_flow.add{
         type = "label",
-        caption = {"nuclearcraft.explorer-interface-mode-input-header"}
+        caption = {"nuclearcraft.explorer-interface-mode-input-explanation"}
     })
     footer_flow.add{
         type = "label",
@@ -1164,7 +1170,7 @@ function explorer.interface_tab(root)
     }
     lbfix(footer_flow.add{
         type = "label",
-        caption = {"nuclearcraft.explorer-interface-mode-output-header"}
+        caption = {"nuclearcraft.explorer-interface-mode-output-explanation"}
     })
     footer_flow.add{
         type = "label",
@@ -1173,11 +1179,45 @@ function explorer.interface_tab(root)
     }
     lbfix(footer_flow.add{
         type = "label",
-        caption = {"nuclearcraft.explorer-interface-mode-group-header"}
+        caption = {"nuclearcraft.explorer-interface-mode-group-explanation"}
     })
     footer_flow.add{
         type = "line",
     }
+end
+
+explorer.pages = {
+    ["fuel-rod"] = explorer.fuel_rod_tab,
+    ["control-rod"] = explorer.control_rod_tab,
+    ["moderator-rod"] = explorer.moderator_tab,
+    ["reflector-rod"] = explorer.reflector_tab,
+    ["reactor-interface"] = explorer.interface_tab,
+}
+
+for name, _ in pairs(Formula.characteristics) do
+    explorer.pages["formula-"..name] = function(root)
+        explorer.explore_certain_formula(root, "explore-certain-formula-"..name)
+    end
+end
+
+---@param name string
+---@return boolean
+function explorer.has_page(name)
+    if explorer.pages[name] then
+        return true
+    end
+    return false
+end
+
+---@param name string
+---@param player LuaPlayer
+function explorer.open_page(name, player)
+    if not explorer.has_page(name) then
+        error("Cannot open page "..tostring(name))
+    end
+    explorer.open(player)
+    local gui = player.gui.screen[explorer.root]
+    explorer.pages[name](gui)
 end
 
 ---@param event EventData.on_gui_closed

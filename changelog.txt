@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.9
+Date: 2025-5-24
+  Features:
+    - Clicking on a formula explorer shortcut now brings the proper tab up instead of bringing up a blank tab
+  Changes:
+    - Changes formula explorer tabs to have a larger font for their title
+  Bugfixes:
+    - Fuel rod formula explorer tab now has a title
+---------------------------------------------------------------------------------------------------
 Version: 0.2.8
 Date: 2025-2-20
   Bugfixes:
