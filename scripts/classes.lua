@@ -58,7 +58,14 @@
 ---@field entity LuaEntity
 ---@field smoke_source LuaEntity?
 
+---@class (exact) FuelIcon
+---@field icon LuaRenderObject
+---@field count_icon LuaRenderObject
+---@field item string
+---@field count number
+
 ---@class (exact) FuelRod
+---@field fuel_icon FuelIcon?
 ---@field has_minable boolean
 ---@field smoke_source LuaEntity?
 ---@field force LuaForce

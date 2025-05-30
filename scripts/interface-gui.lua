@@ -1,5 +1,10 @@
 local interface_gui = {}
 
+local function first(tabl)
+    local _, v = next(tabl)
+    return v
+end
+
 interface_gui.root = "nc-reactor-interface"
 
 ---@param player LuaPlayer
@@ -112,6 +117,14 @@ function interface_gui.open(player, entity)
         style = "green_button",
         caption = {"nuclearcraft.reactor-assemble"},
     }.style.horizontal_align = "right"
+    if storage.debug then
+        button_flow.add{
+            type = "button",
+            name = "cyr-debug-reactor-explode",
+            style = "red_button",
+            caption = "Explode"
+        }
+    end
     interface_gui.update(player)
 end
 
@@ -425,6 +438,12 @@ function interface_gui.player_clicked_gui(event, player)
             player.create_local_flying_text{text={"nuclearcraft.groupid-in-use-ignored"}, create_at_cursor=true}
         end
         Rods.set_interface_group(interface, root.frame.circuit_flow.tags.cached_groupid)
+    elseif event.element.name == "cyr-debug-reactor-explode" then
+        local interface = storage.interfaces[root.tags.id] --[[@as Interface]]
+        if not interface.reactor then
+            game.print("Not assembled.")
+        end
+        Rods.meltdown(first(interface.reactor.fuel_rods))
     end
 end
 

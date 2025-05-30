@@ -724,6 +724,7 @@ function rod_gui.player_clicked_gui(event, player)
                         buffered = cursor_stack.count - 1,
                         buffered_out = 0,
                     }
+                    Rods.on_fuel_changed(rod)
                     cursor_stack.clear()
                     rod_gui.update(player)
                 end

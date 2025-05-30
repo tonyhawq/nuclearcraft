@@ -515,6 +515,57 @@ function rods.unrequest(rod, reactor)
 end
 
 ---@param rod FuelRod
+---@param item string
+---@param count number
+function rods.set_fuel_icon(rod, item, count)
+    if rod.fuel_icon and rod.fuel_icon.item == item and rod.fuel_icon.count == count then
+        return
+    end
+    rods.unset_fuel_icon(rod)
+    local surface = rod.entity.surface
+    rod.fuel_icon = {
+        icon = rendering.draw_sprite{
+            sprite="item."..item,
+            surface=surface,
+            target=rod.entity,
+            only_in_alt_mode=true,
+            x_scale=0.5,
+            y_scale=0.5,
+        },
+        count_icon = rendering.draw_text{
+            text=string.format("%.0f", count),
+            surface=surface,
+            target=rod.entity,
+            only_in_alt_mode=true,
+            color = {1,1,1,1},
+            scale = 0.5,
+        },
+        item = item,
+        count = count,
+    }
+end
+
+---@param rod FuelRod
+function rods.unset_fuel_icon(rod)
+    if not rod.fuel_icon then
+        return
+    end
+    local icon = rod.fuel_icon --[[@as FuelIcon]]
+    icon.icon.destroy()
+    icon.count_icon.destroy()
+    rod.fuel_icon = nil
+end
+
+---@param rod FuelRod
+function rods.on_fuel_changed(rod)
+    if rod.fuel then
+        rods.set_fuel_icon(rod, rod.fuel.item, rod.fuel.buffered + 1)
+    else
+        rods.unset_fuel_icon(rod)
+    end
+end
+
+---@param rod FuelRod
 ---@param memo_name string
 ---@param buffered_in number
 ---@param buffered_out number
@@ -533,6 +584,7 @@ function rods.create_fuel_from_memo(rod, memo_name, buffered_in, buffered_out)
         buffered = buffered_in,
         buffered_out = buffered_out,
     }
+    rods.on_fuel_changed(rod)
     rods.unrequest(rod, rod.reactor)
 end
 
@@ -568,6 +620,7 @@ function rods.update_fuel_rod_fuel(rod, reactor)
             buffered_out = 0,
             spent_fuel = true,
         }
+        rods.on_fuel_changed(rod)
     end
     rods.unrequest(rod, rod.reactor)
 end
@@ -817,6 +870,8 @@ function rods.update_fuel_rod(rod)
                     pause_rod(rod)
                     return
                 end
+            else
+                rods.on_fuel_changed(rod)
             end
             if rod.fuel then
                 fuel = rod.fuel --[[@as Fuel]]
