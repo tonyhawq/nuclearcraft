@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.12
+Date: 2025-7-31
+  Features:
+    - Interpolates values in the fuel rod gui for a more pleasant viewing experience
+    - This feature is fairly expensive (only when viewing the gui), so there is a setting to reduce the tickrate.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.11
 Date: 2025-7-31
   Bugfixes:
