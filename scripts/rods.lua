@@ -119,6 +119,8 @@ function rods.on_fuel_rod_built(entity)
     local id = script.register_on_object_destroyed(entity)
     local spec = rods.fuel_rods[entity.name]
     local fuel_rod = {
+        wants_min = 0,
+        wants_max = 0,
         has_minable = true,
         fuel = nil,
         type = "fuel",
@@ -506,15 +508,6 @@ function rods.update_control_rod(rod)
 end
 
 ---@param rod FuelRod
----@param reactor Reactor
-function rods.unrequest(rod, reactor)
-    if rod.requested then
-        rod.requested = false
-        reactor.need_fuel = reactor.need_fuel - 1
-    end
-end
-
----@param rod FuelRod
 ---@param item string
 ---@param count number
 function rods.set_fuel_icon(rod, item, count)
@@ -566,6 +559,38 @@ function rods.on_fuel_changed(rod)
 end
 
 ---@param rod FuelRod
+local function request_waste(rod)
+    if not rod.requested_waste then
+        rod.requested_waste = true
+        rod.reactor.need_waste = rod.reactor.need_waste + 1
+    end
+end
+
+---@param rod FuelRod
+local function unrequest_waste(rod)
+    if rod.requested_waste then
+        rod.requested_waste = false
+        rod.reactor.need_waste = rod.reactor.need_waste - 1
+    end
+end
+
+---@param rod FuelRod
+local function request_fuel(rod)
+    if not rod.requested then
+        rod.requested = true
+        rod.reactor.need_fuel = rod.reactor.need_fuel + 1
+    end
+end
+
+---@param rod FuelRod
+local function unrequest_fuel(rod)
+    if rod.requested then
+        rod.requested = false
+        rod.reactor.need_fuel = rod.reactor.need_fuel - 1
+    end
+end
+
+---@param rod FuelRod
 ---@param memo_name string
 ---@param buffered_in number
 ---@param buffered_out number
@@ -585,14 +610,12 @@ function rods.create_fuel_from_memo(rod, memo_name, buffered_in, buffered_out)
         buffered_out = buffered_out,
     }
     rods.on_fuel_changed(rod)
-    rods.unrequest(rod, rod.reactor)
+    unrequest_fuel(rod)
 end
 
 ---@param rod FuelRod
 ---@param reactor Reactor
 function rods.update_fuel_rod_fuel(rod, reactor)
-    local wants_min = rod.wants_min
-    local wants_max = rod.wants_max
     local want_fuel = reactor.fuels[rod.wants_fuel --[[@as string]]]
     if not want_fuel or want_fuel.count <= 0 then
         return
@@ -622,7 +645,7 @@ function rods.update_fuel_rod_fuel(rod, reactor)
         }
         rods.on_fuel_changed(rod)
     end
-    rods.unrequest(rod, rod.reactor)
+    unrequest_fuel(rod)
 end
 
 ---@param rod FuelRod
@@ -632,8 +655,8 @@ end
 function rods.set_fuel_request(rod, val, min, max)
     rod.wants_fuel = val
     if val then
-        rod.wants_min = min or rod.wants_min or 0
-        rod.wants_max = max or rod.wants_max or 0
+        rod.wants_min = min or rod.wants_min
+        rod.wants_max = max or rod.wants_max
     else
         rod.wants_min = min or rod.wants_min
         rod.wants_max = max or rod.wants_max
@@ -804,75 +827,48 @@ function rods.update_fuel_rod(rod)
     end
     if not fuel then
         if rod.wants_fuel and (rod.wants_min or 0) > 0 then
-            if not rod.requested then
-                reactor.need_fuel = reactor.need_fuel + 1
-                rod.requested = true
-            end
+            request_fuel(rod)
             rods.update_fuel_rod_fuel(rod, reactor)
         end
-        if rod.fuel then
-            fuel = rod.fuel
-            goto skip
+        if not rod.fuel then
+            pause_rod(rod)
+            return
         end
-        pause_rod(rod)
-        return
-    elseif (rod.wants_min or 0) > 0 and fuel.buffered < rod.wants_min then
-        if not rod.requested then
-            rod.requested = true
-            reactor.need_fuel = reactor.need_fuel + 1
-        end
+        fuel = rod.fuel --[[@as Fuel]]
+    elseif fuel.buffered < rod.wants_min then
+        request_fuel(rod)
         rods.update_fuel_rod_fuel(rod, reactor)
         if not rod.fuel then
+            pause_rod(rod)
             return
         end
         fuel = rod.fuel --[[@as Fuel]]
     end
-    ::skip::
-    if rod.requested_waste then
-        if fuel.buffered_out <= 0 then
-            rod.requested_waste = false
-            rod.reactor.need_waste = rod.reactor.need_waste - 1
-            goto skip_outptut
-        end
-        local waste_product = fuel.burnt_item
-        local output = reactor.dumps[waste_product]
-        if output and output.count > 0 then
-            local insertable = math.min(output.count, fuel.buffered_out)
-            fuel.buffered_out = fuel.buffered_out - insertable
-            output.inventory.insert{name=waste_product, count=insertable}
-            output.count = output.count - insertable
-            if rod.requested_waste then
-                rod.requested_waste = false
-                rod.reactor.need_waste = rod.reactor.need_waste - 1
-            end
-        end
-    end
-    ::skip_outptut::
     if fuel.fuel_remaining <= 0 then
         if fuel.spent_fuel then
             fuel.buffered_out = fuel.buffered_out + 1
             fuel.spent_fuel = false
         end
-        if not rod.requested_waste then
-            rod.requested_waste = true
-            reactor.need_waste = reactor.need_waste + 1
+        if fuel.buffered_out > 0 then
+            request_waste(rod)
         end
         if fuel.buffered > 0 then
             fuel.buffered = fuel.buffered - 1
             fuel.fuel_remaining = fuel.total_fuel
-            if not rod.requested_waste then
-                rod.requested_waste = true
-                reactor.need_waste = reactor.need_waste + 1
-            end
+            fuel.spent_fuel = true
+            rods.on_fuel_changed(rod)
         elseif fuel.buffered_out <= 0 then
+            -- no fuel to burn and none to remove
             rod.fuel = nil
-            if rod.wants_min and rod.wants_min > 0 then
+            rods.on_fuel_changed(rod)
+            if rod.wants_min > 0 then
                 rods.update_fuel_rod_fuel(rod, reactor)
                 if not rod.fuel then
                     pause_rod(rod)
                     return
                 end
             else
+                -- not even requesting fuel.. so just call it empty
                 rods.on_fuel_changed(rod)
             end
             if rod.fuel then
@@ -881,15 +877,26 @@ function rods.update_fuel_rod(rod)
                 return
             end
         else
-            if not rod.requested_waste then
-                rod.requested_waste = true
-                reactor.need_waste = reactor.need_waste + 1
-            end
-            pause_rod(rod)
-            return
+            -- no fuel detected but has unoutputted waste
+            request_waste(rod)
+            rods.on_fuel_changed(rod)
         end
     end
-    if fuel.buffered_out > 50 then
+    if rod.requested_waste then
+        local buffered_out = fuel.buffered_out
+        local waste_product = fuel.burnt_item
+        local output = reactor.dumps[waste_product]
+        if buffered_out > 0 and output and output.count > 0 then
+            local insertable = math.min(output.count, buffered_out)
+            fuel.buffered_out = buffered_out - insertable
+            output.inventory.insert{name=waste_product, count=insertable}
+            output.count = output.count - insertable
+        end
+        if fuel.buffered_out <= 0 then
+            unrequest_waste(rod)
+        end
+    end
+    if fuel.buffered_out > 50 or fuel.fuel_remaining <= 0 then
         pause_rod(rod)
         return
     end

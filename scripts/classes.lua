@@ -73,8 +73,8 @@
 ---@field surface LuaSurface
 ---@field melted_down boolean?
 ---@field wants_fuel string?
----@field wants_min number?
----@field wants_max number?
+---@field wants_min number
+---@field wants_max number
 ---@field type "fuel"
 ---@field fuel Fuel?
 ---@field affects Affects[][]
