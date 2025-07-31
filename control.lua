@@ -57,12 +57,15 @@ script.on_event(defines.events.on_lua_shortcut, function (event)
     end
 end)
 
-script.on_event(defines.events.on_tick, function(event)
-    Remnants.update()
-    Cooling.update()
+script.on_nth_tick(math.ceil(60 / settings.startup["nc-interpolation-tickrate"].value --[[@as number]]), function ()
     for _, player in pairs(game.connected_players) do
         RodGUI.update(player)
     end
+end)
+
+script.on_event(defines.events.on_tick, function(event)
+    Remnants.update()
+    Cooling.update()
     for _, reactor in pairs(storage.reactors) do
         ---@cast reactor Reactor
         if next(reactor.fuel_rods) then

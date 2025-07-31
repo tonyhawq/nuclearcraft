@@ -301,7 +301,7 @@ function rod_gui.open(player, entity)
         type = "progressbar",
         name = "burnup",
         style = "production_progressbar",
-        caption = {"nuclearcraft.burnup"}
+        caption = {"nuclearcraft.burnup-rate"}
     }
     local temp = inside_frame.add{
         type = "progressbar",
