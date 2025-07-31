@@ -13,8 +13,8 @@ require("__control-your-rods__.scripts.remote")
 --TODO: allow ctrl-c ctrl-v to save fuel request config.
 
 commands.add_command("dbgcyr", "Debug mode", function ()
-    game.print("Enabling debug mode.")
-    storage.debug = true
+    storage.debug = not (storage.debug or false)
+    game.print((storage.debug and "Enabling" or "Disabling").." debug mode.")
 end)
 
 script.on_init(function()

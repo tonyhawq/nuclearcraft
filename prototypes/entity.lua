@@ -63,7 +63,7 @@ data:extend({
         collision_box = {{-0.4,-0.4},{0.4,0.4}},
         selection_box = {{-0.5,-0.5},{0.5,0.5}},
         map_color = {255,255,40},
-        minable = {result="fuel-rod",mining_time=0.5},
+        minable = {result="control-rod",mining_time=0.5},
         sprites = {
             north = {
                 filename = "__control-your-rods__/graphics/entity/control-rod.png",
