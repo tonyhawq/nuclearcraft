@@ -64,7 +64,17 @@
 ---@field item string
 ---@field count number
 
+---@class (exact) Interpolation
+---@field old_val number
+---@field new_val number
+---@field old_tick integer
+---@field new_tick integer
+---@field cache_time integer
+---@field cache_val number
+
 ---@class (exact) FuelRod
+---@field updated_at number
+---@field interpolated table<string, Interpolation>
 ---@field fuel_icon FuelIcon?
 ---@field has_minable boolean
 ---@field smoke_source LuaEntity?

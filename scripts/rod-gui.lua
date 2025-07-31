@@ -17,6 +17,43 @@ rod_gui.choose_signal_buttons = {
 
 rod_gui.signal_button_count = #rod_gui.choose_signal_buttons
 
+---@param a number
+---@param b number
+---@param t number
+---@return number
+local function lerp(a, b, t)
+	return a + (b - a) * t
+end
+
+---@param rod FuelRod
+---@param name string
+---@param val number
+local function fake_value_for(rod, name, val)
+    local cache_time = storage.interpolation_tick
+    local now = game.tick
+    local interp = rod.interpolated[name]
+    if not interp then
+        interp = {old_val=val,new_val=val,old_tick=now,new_tick=now,cache_val=0,cache_time=cache_time-1} --[[@as Interpolation]]
+        rod.interpolated[name] = interp
+    end
+    if interp.cache_time == cache_time then
+        return interp.cache_val
+    end
+    interp.cache_time = cache_time
+
+    if rod.updated_at ~= interp.new_tick then
+        interp.old_val = interp.new_val
+        interp.old_tick = interp.new_tick
+        interp.new_val = val
+        interp.new_tick = rod.updated_at
+    end
+    local duration = interp.new_tick - interp.old_tick
+    local progress = now - interp.new_tick
+    local t = duration > 0 and (progress / duration) or 1
+    interp.cache_val = lerp(interp.old_val, interp.new_val, t)
+    return interp.cache_val
+end
+
 ---@param event EventData.on_gui_closed
 ---@param player LuaPlayer
 function rod_gui.on_close(event, player)
@@ -774,6 +811,7 @@ end
 
 ---@param player LuaPlayer
 function rod_gui.update(player)
+    storage.interpolation_tick = (storage.interpolation_tick or 0) + 1
     local root = player.gui.screen[rod_gui.root] --[[@as LuaGuiElement]]
     if not root then
         return
@@ -783,6 +821,9 @@ function rod_gui.update(player)
         return
     end
     local rod = storage.rods[root.tags.id] --[[@as FuelRod]]
+    local efficiency = fake_value_for(rod, "eff", rod.efficiency)
+    local temperature = fake_value_for(rod, "temp", rod.interface.temperature)
+    local power = fake_value_for(rod, "pow", rod.power)
     local status = root.flow.frame.status_flow
     local fuel = rod.fuel
     local circuit_frame = root.flow.circuit_frame
@@ -816,21 +857,21 @@ function rod_gui.update(player)
     local character
     local inside_frame = root.flow.frame
     local temperature_bar = root.flow.frame.temperature
-    local temperature = rod.interface.temperature --[[@as number]]
     temperature_bar.value = temperature / Rods.meltdown_temperature
     temperature_bar.caption = {"nuclearcraft.number-unit", tostring(math.ceil(temperature)),"c"}
     if fuel then
         status.status_led.sprite = "utility.status_working"
         status.status_label.caption = {"nuclearcraft.working"}
-        fuel_flow.fuel_remaining.value = fuel.fuel_remaining / fuel.total_fuel
-        local fuel_number, fuel_unit = select_unit(fuel.fuel_remaining * 1000000, "J")
+        local fuel_remaining = fake_value_for(rod, "furm", fuel.fuel_remaining)
+        fuel_flow.fuel_remaining.value = fuel_remaining / fuel.total_fuel
+        local fuel_number, fuel_unit = select_unit(fuel_remaining * 1000000, "J")
         fuel_flow.fuel_remaining.caption = {"nuclearcraft.number-unit", string.format("%.1f", fuel_number), fuel_unit}
         character = Formula.characteristics[fuel.character_name]
         fuel_flow.burning_fuel.sprite = "item."..fuel.item
         fuel_flow.burnt_fuel.sprite = "item."..fuel.burnt_item
         fuel_flow.burning_fuel.number = fuel.buffered
         fuel_flow.burnt_fuel.number = fuel.buffered_out
-        inside_frame.efficiency.value = rod.efficiency / character.max_efficiency
+        inside_frame.efficiency.value = efficiency / character.max_efficiency
         inside_frame.efficiency_penalty.value = 1
         if not rod.wants_fuel then
             fuel_flow.fuel_selection.elem_value = nil
@@ -863,42 +904,43 @@ function rod_gui.update(player)
             fuel_flow.fuel_selection.elem_value = nil
         end
     end
-    inside_frame.efficiency.caption = string.format("%.0f%%", rod.efficiency * 100)
+    inside_frame.efficiency.caption = string.format("%.0f%%", efficiency * 100)
     inside_frame.efficiency_penalty.caption = string.format("%.0f%%", inside_frame.efficiency_penalty.value * 100)
     local flux_percentage_in = 1
     local flux_percentage_out = 1
+    local in_slow_flux = fake_value_for(rod, "isf", rod.in_slow_flux)
+    local in_fast_flux = fake_value_for(rod, "iff", rod.in_fast_flux)
+    local slow_flux = fake_value_for(rod, "osf", rod.slow_flux)
+    local fast_flux = fake_value_for(rod, "off", rod.fast_flux)
     if character then
-        local target_fast = character.target_fast_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature)
-        local target_slow = character.target_slow_flux(rod.in_slow_flux, rod.in_fast_flux, rod.temperature) 
-        flux_percentage_in = ((rod.in_slow_flux + rod.in_fast_flux) / math.max(
+        local target_fast = character.target_fast_flux(in_slow_flux, in_fast_flux, temperature)
+        local target_slow = character.target_slow_flux(in_slow_flux, in_fast_flux, temperature)
+        flux_percentage_in = ((in_slow_flux + in_fast_flux) / math.max(
         target_fast +
-        target_slow, 1)
-    )
-    root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", rod.in_slow_flux + rod.in_fast_flux), "η", string.format("%.3f", target_fast + target_slow), "η"}
-    flux_percentage_out = (rod.slow_flux + rod.fast_flux) / (character.max_slow_flux + character.max_fast_flux)
-else
-    
-end
-rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
-rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
-root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", rod.slow_flux + rod.fast_flux), "η"}
-if rod.power > 0 then
-    root.flow.frame.power.value = rod.power / (character or {max_power = 40}).max_power
-    root.flow.frame.burnup.value = rod.power / rod.efficiency / rod.power
-    local power, power_unit = select_unit(rod.power * 1000000)
-    local burnup, burnup_unit = select_unit(rod.power / rod.efficiency * 1000000)
-    root.flow.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power), power_unit}
-    root.flow.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
-else
-    root.flow.frame.power.value = 0
-    root.flow.frame.power.caption = {"nuclearcraft.power-production"}
-    root.flow.frame.burnup.value = 0
-    root.flow.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
-end
-if not rod.reactor then
-    status.status_led.sprite = "utility.status_inactive"
-    status.status_label.caption = {"nuclearcraft.no-reactor"}
-end
+        target_slow, 1))
+        root.flow.frame.flux_input.total_flux.tooltip = {"nuclearcraft.number-unit-fraction", string.format("%.3f", in_slow_flux + in_fast_flux), "η", string.format("%.3f", target_fast + target_slow), "η"}
+        flux_percentage_out = (slow_flux + fast_flux) / (character.max_slow_flux + character.max_fast_flux)
+    end
+    rod_gui.update_flux_bars(root, rod, "in", flux_percentage_in)
+    rod_gui.update_flux_bars(root, rod, "out", flux_percentage_out)
+    root.flow.frame.flux_output.total_flux.tooltip = {"nuclearcraft.number-unit", string.format("%.3f", slow_flux + fast_flux), "η"}
+    if power > 0 then
+        root.flow.frame.power.value = power / (character or {max_power = 40}).max_power
+        root.flow.frame.burnup.value = power / efficiency / power
+        local power_val, power_unit = select_unit(power * 1000000)
+        local burnup, burnup_unit = select_unit(power / efficiency * 1000000)
+        root.flow.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power_val), power_unit}
+        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
+    else
+        root.flow.frame.power.value = 0
+        root.flow.frame.power.caption = {"nuclearcraft.power-production"}
+        root.flow.frame.burnup.value = 0
+        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
+    end
+    if not rod.reactor then
+        status.status_led.sprite = "utility.status_inactive"
+        status.status_label.caption = {"nuclearcraft.no-reactor"}
+    end
 end
 
 ---@param root LuaGuiElement
@@ -917,8 +959,8 @@ function rod_gui.update_flux_bars(root, rod, mode, flux_percentage)
         slow_flux = rod[mode.."_slow_flux"]
         fast_flux = rod[mode.."_fast_flux"]
     else
-        slow_flux = rod.slow_flux
-        fast_flux = rod.fast_flux
+        slow_flux = fake_value_for(rod, "osf", rod.slow_flux)
+        fast_flux = fake_value_for(rod, "off", rod.fast_flux)
     end
     flux_root.total_flux.value = 0
     flux_root.total_flux.caption = {"nuclearcraft.number-unit", string.format("%.3f", fast_flux + slow_flux), "η"}

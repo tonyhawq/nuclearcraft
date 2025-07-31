@@ -8,6 +8,7 @@ rods.moderator_rods = constants.moderator_rods
 rods.reflector_rods = constants.reflector_rods
 rods.source_rods = constants.source_rods
 
+rods.tickrate = 60
 rods.interface_name = "reactor-interface"
 rods.heat_interface_name = "nc-fuel-rod-heat"
 rods.circuit_interface_name = "nc-circuit-interface"
@@ -50,6 +51,7 @@ rods.restricted_signal = {
 }
 
 function rods.setup()
+    storage.interpolation_tick = storage.interpolation_tick or 0
     storage.rods = storage.rods or {} --[[@as table<FuelRod>]]
     storage.reflectors = storage.reflectors or {} --[[@as table<Reflector>]]
     storage.interfaces = storage.interfaces or {} --[[@as table<Interface>]]
@@ -119,6 +121,8 @@ function rods.on_fuel_rod_built(entity)
     local id = script.register_on_object_destroyed(entity)
     local spec = rods.fuel_rods[entity.name]
     local fuel_rod = {
+        updated_at = game.tick,
+        interpolated = {},
         wants_min = 0,
         wants_max = 0,
         has_minable = true,
@@ -814,6 +818,7 @@ end
 
 ---@param rod FuelRod
 function rods.update_fuel_rod(rod)
+    rod.updated_at = game.tick
     local reactor = rod.reactor --[[@as Reactor]]
     local fuel = rod.fuel
     local temperature = rod.interface.temperature --[[@as number]]

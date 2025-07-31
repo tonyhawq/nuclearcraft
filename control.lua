@@ -31,7 +31,6 @@ end)
 
 script.on_nth_tick(15, function (_)
     for _, player in pairs(game.connected_players) do
-        RodGUI.update(player)
         InterfaceGUI.update(player)
         ControlRodGUI.update(player)
     end
@@ -61,6 +60,9 @@ end)
 script.on_event(defines.events.on_tick, function(event)
     Remnants.update()
     Cooling.update()
+    for _, player in pairs(game.connected_players) do
+        RodGUI.update(player)
+    end
     for _, reactor in pairs(storage.reactors) do
         ---@cast reactor Reactor
         if next(reactor.fuel_rods) then
