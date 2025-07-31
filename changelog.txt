@@ -2,9 +2,13 @@
 Version: 0.2.10
 Date: 2025-5-29
   Features:
-    - When using alt-tab fuel rods have an icon displaying currently burning fuel
+    - When using alt fuel rods have an icon displaying currently burning fuel
     - /dbgcyr enables debug mode
     - In debug mode: Interfaces have a button to enable a meltdown
+    - In debug mode: Fuel rods do not naturally melt down.
+  Bugfixes:
+    - Crash when attemping to remove fuel is fixed
+    - Control rods drop control rods
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.9
 Date: 2025-5-24
