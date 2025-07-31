@@ -49,7 +49,7 @@ local function fake_value_for(rod, name, val)
     end
     local duration = interp.new_tick - interp.old_tick
     local progress = now - interp.new_tick
-    local t = duration > 0 and (progress / duration) or 1
+    local t = duration > 0 and math.min(progress / duration, 1) or 1
     interp.cache_val = lerp(interp.old_val, interp.new_val, t)
     return interp.cache_val
 end
@@ -858,6 +858,7 @@ function rod_gui.update(player)
     local inside_frame = root.flow.frame
     local temperature_bar = root.flow.frame.temperature
     temperature_bar.value = temperature / Rods.meltdown_temperature
+    temperature_bar.tooltip = {"nuclearcraft.number-unit", tostring(math.ceil(rod.interface.temperature)), "c"}
     temperature_bar.caption = {"nuclearcraft.number-unit", tostring(math.ceil(temperature)),"c"}
     if fuel then
         status.status_led.sprite = "utility.status_working"
@@ -865,7 +866,9 @@ function rod_gui.update(player)
         local fuel_remaining = fake_value_for(rod, "furm", fuel.fuel_remaining)
         fuel_flow.fuel_remaining.value = fuel_remaining / fuel.total_fuel
         local fuel_number, fuel_unit = select_unit(fuel_remaining * 1000000, "J")
+        local raw_fuel_remaining, raw_fuel_unit = select_unit(fuel.fuel_remaining * 1000000, "J")
         fuel_flow.fuel_remaining.caption = {"nuclearcraft.number-unit", string.format("%.1f", fuel_number), fuel_unit}
+        fuel_flow.fuel_remaining.tooltip = {"nuclearcraft.number-unit", string.format("%.1f", raw_fuel_remaining), raw_fuel_unit}
         character = Formula.characteristics[fuel.character_name]
         fuel_flow.burning_fuel.sprite = "item."..fuel.item
         fuel_flow.burnt_fuel.sprite = "item."..fuel.burnt_item
@@ -884,9 +887,11 @@ function rod_gui.update(player)
             inside_frame.efficiency_penalty.value = 1 - rod.base_efficiency
             status.status_led.sprite = "utility.status_not_working"
             if rod.wants_min == 0 then
+                fuel_flow.fuel_remaining.tooltip = nil
                 fuel_flow.fuel_remaining.caption = {"nuclearcraft.no-fuel-requested"}
                 status.status_label.caption = {"nuclearcraft.no-fuel-requested"}
             else
+                fuel_flow.fuel_remaining.tooltip = nil
                 fuel_flow.fuel_remaining.caption = {"nuclearcraft.no-fuel"}
                 status.status_label.caption = {"nuclearcraft.no-fuel"}    
             end
@@ -928,14 +933,20 @@ function rod_gui.update(player)
         root.flow.frame.power.value = power / (character or {max_power = 40}).max_power
         root.flow.frame.burnup.value = power / efficiency / power
         local power_val, power_unit = select_unit(power * 1000000)
+        local raw_power_val, raw_power_unit = select_unit(rod.power * 1000000)
         local burnup, burnup_unit = select_unit(power / efficiency * 1000000)
+        local raw_burnup, raw_burnup_unit = select_unit(raw_power_val / efficiency * 1000000)
+        
+        root.flow.frame.power.tooltip = {"nuclearcraft.power-number", string.format("%.1f",raw_power_val), raw_power_unit}
+        root.flow.frame.burnup.tooltip = {"nuclearcraft.burnup-number", string.format("%.1f",raw_burnup), raw_burnup_unit}
         root.flow.frame.power.caption = {"nuclearcraft.power-number", string.format("%.1f", power_val), power_unit}
         root.flow.frame.burnup.caption = {"nuclearcraft.burnup-number", string.format("%.1f", burnup), burnup_unit}
     else
         root.flow.frame.power.value = 0
         root.flow.frame.power.caption = {"nuclearcraft.power-production"}
         root.flow.frame.burnup.value = 0
-        root.flow.frame.burnup.caption = {"nuclearcraft.burnup-rate"}
+        root.flow.frame.burnup.tooltip = nil
+        root.flow.frame.power.tooltip = nil
     end
     if not rod.reactor then
         status.status_led.sprite = "utility.status_inactive"
