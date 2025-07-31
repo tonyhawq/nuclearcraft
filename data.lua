@@ -49,4 +49,5 @@ NUCLEARCRAFT_ALLOWED_FUELS = {
     "plutonium-fuel-cell",
     "mox-fuel-cell",
     "americium-fuel-cell",
+    "nc-creative-fuel-cell",
 }

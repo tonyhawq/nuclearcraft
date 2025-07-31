@@ -70,7 +70,7 @@ function rods.create_connector(connector, owner)
 end
 
 ---@param rod FuelRod
----@return SimpleItemStack[]?
+---@return ItemStackDefinition[]?
 function rods.get_minable_results_from(rod)
     if not rod.fuel then
         return nil
@@ -798,7 +798,7 @@ function rods.update_fuel_rod(rod)
     local in_fast = rod.cfast + rod.base_fast_flux
     rod.cslow = 0
     rod.cfast = 0
-    if temperature > meltdown_temperature then
+    if temperature > meltdown_temperature and not storage.debug then
         rods.meltdown(rod)
         return
     end
@@ -832,6 +832,7 @@ function rods.update_fuel_rod(rod)
         if fuel.buffered_out <= 0 then
             rod.requested_waste = false
             rod.reactor.need_waste = rod.reactor.need_waste - 1
+            goto skip_outptut
         end
         local waste_product = fuel.burnt_item
         local output = reactor.dumps[waste_product]
@@ -846,6 +847,7 @@ function rods.update_fuel_rod(rod)
             end
         end
     end
+    ::skip_outptut::
     if fuel.fuel_remaining <= 0 then
         if fuel.spent_fuel then
             fuel.buffered_out = fuel.buffered_out + 1

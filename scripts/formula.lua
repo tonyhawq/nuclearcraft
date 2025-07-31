@@ -208,6 +208,15 @@ end
 
 ---@type table<string, Fuel>
 formula.fuels = {
+    ["creative-fuel-cell"] = {
+        item = "creative-fuel-cell",
+        burnt_item = "depleted-uranium-fuel-cell",
+        character_name = "uranium",
+        fuel_remaining = 200,
+        total_fuel = 200,
+        buffered = 0,
+        buffered_out = 0,
+    },
     ["uranium-fuel-cell"] = {
         item = "uranium-fuel-cell",
         burnt_item = "depleted-uranium-fuel-cell",
@@ -268,7 +277,7 @@ formula.fuels = {
 formula.burnt_items = {
     ["depleted-uranium-fuel-cell"] = {
         item = "depleted-uranium-fuel-cell",
-        from = {"uranium-fuel-cell"},
+        from = {"uranium-fuel-cell", "creative-fuel-cell"},
     },
     ["depleted-thorium-fuel-cell"] = {
         item = "depleted-thorium-fuel-cell",

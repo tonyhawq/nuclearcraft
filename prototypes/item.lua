@@ -452,3 +452,32 @@ data.raw.item["uranium-fuel-cell"].localised_description = {
     "[item=depleted-uranium-fuel-cell]",
     "[shortcut=cyr-explorer-shortcut-formula-uranium] [color=#55adff]See in explorer..[/color]"
 }
+
+data:extend({
+    {
+        type = "item",
+        name = "creative-fuel-cell",
+        icons = {
+            {
+                icon = "__control-your-rods__/graphics/icons/base-cell.png",
+                tint = {1,0,1}
+            },
+        },
+        localised_description = {
+            "item-description.creative-fuel-cell",
+            "nuclearcraft.fuel-description",
+            {"nuclearcraft.character-uranium-flux"},
+            {"nuclearcraft.character-uranium-power"},
+            {"nuclearcraft.character-uranium-efficiency"},
+            {"nuclearcraft.self-starting"},
+            "[item=depleted-uranium-fuel-cell]",
+            "[shortcut=cyr-explorer-shortcut-formula-uranium] [color=#55adff]See in explorer..[/color]"
+        },
+        subgroup = "fuel-cells",
+        order = "azzz",
+        stack_size = 50,
+        fuel_value = "0.2GJ",
+        fuel_category = "nuclear",
+        burnt_result = "depleted-uranium-fuel-cell",
+    },
+})
