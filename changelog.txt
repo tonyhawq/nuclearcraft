@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.11
+Date: 2025-7-31
+  Bugfixes:
+    - Fixes the fact that the fix deleted every other waste fuel rod
+    - Fixes corner cases with new icon displaying
+---------------------------------------------------------------------------------------------------
 Version: 0.2.10
 Date: 2025-5-29
   Features:
