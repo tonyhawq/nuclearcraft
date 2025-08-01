@@ -466,8 +466,8 @@ data:extend({
         localised_description = {
             "item-description.creative-fuel-cell",
             "nuclearcraft.fuel-description",
-            {"nuclearcraft.character-uranium-flux"},
-            {"nuclearcraft.character-uranium-power"},
+            {"nuclearcraft.character-uthor-flux"},
+            {"nuclearcraft.character-uthor-power"},
             {"nuclearcraft.character-uranium-efficiency"},
             {"nuclearcraft.self-starting"},
             "[item=depleted-uranium-fuel-cell]",

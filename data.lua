@@ -19,13 +19,18 @@ circuit_interface.sprites = nil
 circuit_interface.minable = nil
 heat_interface.collision_box = {{-0.5, -0.5}, {0.5, 0.5}}
 heat_interface.name = "nc-fuel-rod-heat"
-heat_interface.heat_buffer.specific_heat = "1MJ"
+heat_interface.picture = nil
+heat_interface.heat_buffer.specific_heat = "0.5MJ"
 heat_interface.heat_buffer.default_temperature = 0
 heat_interface.heat_buffer.min_working_temperature = 0
 heat_interface.heat_buffer.max_temperature = 3000
 heat_interface.heat_buffer.max_transfer = "1GW"
 heat_interface.heat_buffer.min_temperature_gradient = 1
 heat_pipe.name = "nc-heat-pipe"
+heat_pipe.minable = nil
+heat_pipe.heat_glow_sprites = nil
+heat_pipe.heat_buffer.specific_heat = "0.5MJ"
+heat_pipe.connection_sprites = nil
 heat_pipe.heat_buffer.max_temperature = 3000
 heat_pipe.heat_buffer.max_transfer = "1GW"
 apply_flags(heat_interface)
@@ -49,5 +54,5 @@ NUCLEARCRAFT_ALLOWED_FUELS = {
     "plutonium-fuel-cell",
     "mox-fuel-cell",
     "americium-fuel-cell",
-    "nc-creative-fuel-cell",
+    "creative-fuel-cell"
 }

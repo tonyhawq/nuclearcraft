@@ -1,3 +1,5 @@
+local mask = {layers={item=true, meltable=true, floor=true, car=true, water_tile=true, transport_belt=true, is_lower_object=true}}
+
 data:extend({
     {
         type = "constant-combinator",
@@ -9,6 +11,7 @@ data:extend({
                 icon_size = 64,
             }
         },
+        collision_mask = mask,
         activity_led_light_offsets = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"].activity_led_light_offsets),
         circuit_wire_connection_points = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"].circuit_wire_connection_points),
         circuit_wire_max_distance = 16,
@@ -19,7 +22,7 @@ data:extend({
         close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.43 },    
         map_color = {94,140,99},
         minable = {result="fuel-rod",mining_time=0.5},
-        sprites = {
+        integration_patch = {
             north = {
                 filename = "__control-your-rods__/graphics/entity/fuel-rod.png",
                 width = 64,
@@ -56,6 +59,7 @@ data:extend({
                 icon_size = 64,
             }
         },
+        collision_mask = mask,
         activity_led_light_offsets = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"].activity_led_light_offsets),
         circuit_wire_connection_points = table.deepcopy(data.raw["constant-combinator"]["constant-combinator"].circuit_wire_connection_points),
         circuit_wire_max_distance = 16,
@@ -64,7 +68,7 @@ data:extend({
         selection_box = {{-0.5,-0.5},{0.5,0.5}},
         map_color = {255,255,40},
         minable = {result="control-rod",mining_time=0.5},
-        sprites = {
+        integration_patch = {
             north = {
                 filename = "__control-your-rods__/graphics/entity/control-rod.png",
                 width = 64,
@@ -108,7 +112,8 @@ data:extend({
                 icon_size = 64,
             }
         },
-        picture = {
+        collision_mask = mask,
+        integration_patch = {
             filename = "__control-your-rods__/graphics/entity/moderator-rod.png",
             width = 64,
             height = 64,
@@ -131,7 +136,8 @@ data:extend({
                 icon_size = 64,
             }
         },
-        picture = {
+        collision_mask = mask,
+        integration_patch = {
             filename = "__control-your-rods__/graphics/entity/source-rod.png",
             width = 64,
             height = 64,
@@ -155,7 +161,8 @@ data:extend({
                 icon_size = 64,
             }
         },
-        picture = {
+        collision_mask = mask,
+        integration_patch = {
             filename = "__control-your-rods__/graphics/entity/reflector-rod.png",
             width = 64,
             height = 64,
@@ -182,6 +189,7 @@ data:extend({
                 icon_size = 64,
             }
         },
+        collision_mask = mask,
         picture =
         {
             layers =
@@ -257,7 +265,8 @@ data:extend({
             direction_count = 1,
             shift = util.by_pixel(0, 0),
             scale = 0.5
-        }
+        },
+        collision_mask = mask,
     },
 })
 data:extend({
