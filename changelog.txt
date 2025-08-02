@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.13
+Date: 2025-8-2
+  Bugfixes:
+    - Fixes migration issue where invalid fuel rods persist
+    - Fixes migration issue where fuel may be deleted on migration
+    - Fixes migration issue where fuel icons may remain
+---------------------------------------------------------------------------------------------------
 Version: 0.2.12
 Date: 2025-7-31
   Features:

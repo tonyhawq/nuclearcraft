@@ -62,6 +62,20 @@ function rods.setup()
     storage.last_reactor_id = storage.last_reactor_id or 0
 end
 
+---@param rod FuelRod
+local function safe_is_fuel_rod(rod)
+    if type(rod) ~= "table" then
+        return false
+    end
+    if rod.type and rod.type == "fuel" then
+        return true
+    end
+    if rod.entity and rod.entity.valid and rods.fuel_rods[rod.entity.name] then
+        return true
+    end
+    return false
+end
+
 ---@param connector LuaEntity
 ---@param owner FuelRod|ControlRod|Interface|Source|Reflector|Moderator
 function rods.create_connector(connector, owner)
@@ -411,6 +425,9 @@ function rods.on_destroyed(event)
     local id = event.registration_number
     if storage.rods[id] then
         local rod = storage.rods[id] --[[@as FuelRod|ControlRod|Source]]
+        if rod.fuel_icon then
+            rods.unset_fuel_icon(rod --[[@as FuelRod]])
+        end
         if rod.reactor then
             rods.destroy_reactor(rod.reactor)
         end
@@ -1478,6 +1495,119 @@ function rods.destroy_reactor(reactor)
     reactor.group_controllers = false
 end
 
+---@param v boolean|number|string|table
+local function isnil(v)
+    return type(v) == "nil"
+end
+
+---@param rod FuelRod
+---@return boolean
+function rods.has_required_fields_and_fix(rod)
+    local valid = true
+    if rod.fuel then
+        if rod.fuel.item then
+            if not prototypes.item[rod.fuel.item] then
+                rod.fuel = nil
+            end
+        end
+        if rod.fuel.burnt_item then
+            if not prototypes.item[rod.fuel.burnt_item] then
+                rod.fuel = nil
+            end
+        end
+    end
+    if isnil(rod.updated_at) or
+    isnil(rod.interpolated) or
+    isnil(rod.has_minable) or
+    isnil(rod.force) or
+    isnil(rod.position) or
+    isnil(rod.surface) or
+    isnil(rod.wants_min) or
+    isnil(rod.wants_max) or
+    isnil(rod.type) or
+    isnil(rod.affects) or
+    isnil(rod.power) or
+    isnil(rod.fast_coeff) or
+    isnil(rod.slow_coeff) or
+    isnil(rod.fast_flux) or
+    isnil(rod.slow_flux) or
+    isnil(rod.cslow) or
+    isnil(rod.cfast) or
+    isnil(rod.in_slow_flux) or
+    isnil(rod.in_fast_flux) or
+    isnil(rod.base_slow_flux) or
+    isnil(rod.base_fast_flux) or
+    isnil(rod.entity) or
+    isnil(rod.connector) or
+    isnil(rod.id) or
+    isnil(rod.temperature) or
+    isnil(rod.base_efficiency) or
+    isnil(rod.efficiency) or
+    isnil(rod.affectable_distance) or
+    isnil(rod.delta_flux) or
+    isnil(rod.requested) or
+    isnil(rod.requested_waste) then
+        valid = false
+        local reactor = rod.reactor
+        rod.reactor = nil
+        rod.melted_down = false
+        if rod.fuel then
+            local entity = nil
+            if reactor and reactor.interfaces and not isnil(first(reactor.interfaces)) then
+                for _, interface in pairs(reactor.interfaces) do
+                    if interface.entity and interface.entity.valid then
+                        entity = interface.entity
+                        break
+                    end
+                end
+            elseif rod.entity then
+                entity = rod.entity
+            end
+            if entity then
+                if rod.fuel.buffered and rod.fuel.buffered > 0 and rod.fuel.item then
+                    local inv = entity.get_inventory(defines.inventory.chest)
+                    local to_spill = rod.fuel.buffered
+                    if inv then
+                        to_spill = to_spill - inv.insert({name=rod.fuel.item, count=to_spill})
+                    end
+                    if to_spill > 0 then
+                        rod.entity.surface.spill_item_stack{position=rod.entity.position, stack={
+                            name=rod.fuel.item,
+                            count=to_spill,
+                        }, allow_belts=false}
+                    end
+                end
+                if rod.fuel.buffered_out and rod.fuel.buffered_out > 0 and rod.fuel.burnt_item then
+                    local inv = entity.get_inventory(defines.inventory.chest)
+                    local to_spill = rod.fuel.buffered_out
+                    if inv then
+                        to_spill = to_spill - inv.insert({name=rod.fuel.burnt_item, count=to_spill})
+                    end
+                    if to_spill > 0 then
+                        rod.entity.surface.spill_item_stack{position=rod.entity.position, stack={
+                            name=rod.fuel.burnt_item,
+                            count=to_spill,
+                        }, allow_belts=false}
+                    end
+                end
+            else
+                game.print({"nuclearcraft.error-while-spilling-fuel"})
+            end
+        end
+        rods.on_destroyed({
+            registration_number = rod.id,
+            useful_id = rod.id,
+            type = defines.target_type.entity,
+            name = defines.events.on_object_destroyed,
+            tick = game.tick
+        })
+        if rod.entity then
+            rods.on_fuel_rod_built(rod.entity)
+        end
+    end
+    return valid
+end
+
 ---@param version string
 function rods.on_configuration_changed(version)
     version = tostring(version)
@@ -1486,6 +1616,12 @@ function rods.on_configuration_changed(version)
         text = "called"
     end
     rods.setup()
+    local scanned_rods = {}
+    for _, rod in pairs(storage.rods) do
+        if safe_is_fuel_rod(rod) then
+            scanned_rods[rod] = rods.has_required_fields_and_fix(rod)
+        end
+    end
     local reactors_to_fix = {}
     for _, reactor in pairs(storage.reactors) do
         table.insert(reactors_to_fix, reactor)
@@ -1503,6 +1639,13 @@ function rods.on_configuration_changed(version)
             if rod.connector.valid then
                 table.insert(table_, storage.connectors[rod.connector.unit_number])
             else
+                had_invalid_entity = true
+            end
+        end
+        for _, rod in pairs(reactor.fuel_rods) do
+            local success = isnil(scanned_rods[rod]) and rods.has_required_fields_and_fix(rod) or scanned_rods[rod]
+            scanned_rods[rod] = success
+            if not success then
                 had_invalid_entity = true
             end
         end
@@ -1547,7 +1690,7 @@ function rods.on_configuration_changed(version)
                 had_invalid_entity = true
             else
                 counts_by_id[rod.id] = counts_by_id[rod.id] or {}
-                table.insert(counts_by_id[rod.reactor])    
+                table.insert(counts_by_id[rod.reactor])
             end
         end
         if had_invalid_entity then
