@@ -989,14 +989,16 @@ function rods.update_fuel_rod(rod)
             rod.csection = rod.entity.get_control_behavior()--[[@as LuaConstantCombinatorControlBehavior]].add_section()
         end
         local section = rod.csection --[[@as LuaLogisticSection]]
+        local min = math.min
+        local max_value = 1000000000
         section.set_slot(1, {value={type="item", name="fuel-rod", quality="normal"}, min=1})
-        section.set_slot(2, {value=rod.tsig, min=math.min(temperature, 1000000)}) ---@diagnostic disable-line
-        section.set_slot(3, {value=rod.psig, min=math.min(rod.power * 1000, 1000000)}) ---@diagnostic disable-line
-        section.set_slot(4, {value=rod.esig, min=math.min(rod.efficiency * 100, 1000000)}) ---@diagnostic disable-line
-        section.set_slot(5, {value=rod.fsig, min=math.min(rod.fuel.fuel_remaining, 1000000)}) ---@diagnostic disable-line
-        section.set_slot(6, {value=rod.sfsig, min=math.min(rod.slow_flux * 1000, 1000000)}) ---@diagnostic disable-line
-        section.set_slot(7, {value=rod.ffsig, min=math.min(rod.fast_flux * 1000, 1000000)}) ---@diagnostic disable-line
-        section.set_slot(8, {value=rod.dfsig, min=math.min(rod.delta_flux * 1000, 1000000)}) ---@diagnostic disable-line
+        section.set_slot(2, {value=rod.tsig, min=min(temperature, max_value)}) ---@diagnostic disable-line
+        section.set_slot(3, {value=rod.psig, min=min(rod.power * 1000, max_value)}) ---@diagnostic disable-line
+        section.set_slot(4, {value=rod.esig, min=min(rod.efficiency * 100, max_value)}) ---@diagnostic disable-line
+        section.set_slot(5, {value=rod.fsig, min=min(rod.fuel.fuel_remaining, max_value)}) ---@diagnostic disable-line
+        section.set_slot(6, {value=rod.sfsig, min=min(rod.slow_flux * 1000, max_value)}) ---@diagnostic disable-line
+        section.set_slot(7, {value=rod.ffsig, min=min(rod.fast_flux * 1000, max_value)}) ---@diagnostic disable-line
+        section.set_slot(8, {value=rod.dfsig, min=min(rod.delta_flux * 1000, max_value)}) ---@diagnostic disable-line
     end
 end
 
