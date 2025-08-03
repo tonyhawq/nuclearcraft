@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.14
+Date: 2025-8-2
+  Bugfixes:
+    - Fixes issue where lowering the heat capacity by 2 increased power output by 2 (divided instead of multiplied)
+---------------------------------------------------------------------------------------------------
 Version: 0.2.13
 Date: 2025-8-2
   Bugfixes:

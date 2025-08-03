@@ -959,7 +959,7 @@ function rods.update_fuel_rod(rod)
     rod.efficiency = efficiency
     rod.delta_flux = out_slow + out_fast - last_slow - last_fast
     fuel.fuel_remaining = math.max(fuel.fuel_remaining - power / efficiency, 0)
-    rod.interface.set_heat_setting{mode="add", temperature=power / heat_interface_capacity / 60}
+    rod.interface.set_heat_setting{mode="add", temperature=power * heat_interface_capacity / 60}
     for _, dir in pairs(rod.affects) do
         local sf = out_slow / 4
         local ff = out_fast / 4
